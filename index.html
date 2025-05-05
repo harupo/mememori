@@ -1,86 +1,106 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>メメントモリ育成スタイル診断</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
   <style>
     body {
-      font-family: sans-serif;
-      padding: 2em;
-      background: #f7f7f7;
+      font-family: 'Noto Sans JP', sans-serif;
+      background-color: #f9f9f9;
       margin: 0;
+      padding: 2rem;
+      display: flex;
+      justify-content: center;
     }
     .container {
-      max-width: 480px;
-      margin: auto;
       background: #fff;
-      padding: 2em;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      border-radius: 16px;
+      padding: 2rem;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     }
-    label {
-      font-weight: bold;
-      margin-top: 1em;
+    h1 {
+      text-align: center;
+      font-size: 1.8rem;
+      margin-bottom: 2rem;
+    }
+    h1 span {
       display: block;
     }
-    input, button {
-      font-size: 1em;
-      margin: 10px 0;
-      padding: 0.75em;
+    label {
+      display: flex;
+      align-items: center;
+      font-weight: bold;
+      margin: 1rem 0 0.25rem;
+    }
+    input {
       width: 100%;
-      box-sizing: border-box;
+      padding: 0.75rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #f1f1f1;
     }
     button {
-      background-color: #007BFF;
-      color: white;
-      border: none;
+      margin-top: 2rem;
+      width: 100%;
+      padding: 0.75rem;
+      background: #e3f0ff;
+      border: 1px solid #005bc5;
+      color: #005bc5;
+      font-weight: bold;
+      font-size: 1rem;
+      border-radius: 8px;
       cursor: pointer;
-      border-radius: 4px;
-    }
-    button:hover {
-      background-color: #0056b3;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
     }
     .result {
-      margin-top: 20px;
-      background: #eef;
-      padding: 1em;
-      border-radius: 8px;
-      font-size: 1.1em;
+      margin-top: 2rem;
+      background: #f1faff;
+      border-radius: 12px;
+      padding: 1rem;
+      line-height: 1.5;
     }
-
-    @media (max-width: 400px) {
-      body {
-        padding: 1em;
-      }
-      .container {
-        padding: 1em;
-      }
+    .share {
+      margin-top: 1rem;
+      text-align: center;
     }
-
-    .result.error {
-      color: red;
+    .share a {
+      text-decoration: none;
+      color: #005bc5;
       font-weight: bold;
-    }
-    .result.success {
-      color: green;
-      font-weight: bold;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>メメントモリ育成スタイル診断</h1>
+    <h1>
+      <span>メメントモリ</span>
+      育成スタイル診断
+    </h1>
 
-    <label for="levelPower">レベルリンク戦闘力</label>
-    <input type="number" id="levelPower" placeholder="例: 123456789" step="1" min="1">
+    <label><span class="material-icons">show_chart</span>レベルリンク戦闘力</label>
+    <input type="number" id="levelPower" placeholder="例: 123456789" />
 
-    <label for="battlePower">バトリ編成5体合計</label>
-    <input type="number" id="battlePower" placeholder="例: 23456789" step="1" min="1">
+    <label><span class="material-icons">groups</span>バトリ編成5体合計</label>
+    <input type="number" id="battlePower" placeholder="例: 23456789" />
 
-    <button onclick="diagnose()">診断する</button>
+    <button onclick="diagnose()">
+      <span class="material-icons">bar_chart</span>診断する
+    </button>
 
-    <div id="output" class="result" style="display:none;"></div>
+    <div id="output" class="result" style="display: none;"></div>
+    <div id="share" class="share" style="display: none;"></div>
   </div>
 
   <script>
@@ -106,30 +126,12 @@
       const levelPower = Number(document.getElementById("levelPower").value);
       const battlePower = Number(document.getElementById("battlePower").value);
       const output = document.getElementById("output");
+      const share = document.getElementById("share");
 
-      if (!levelPower || !battlePower) {
-        output.innerText = "両方の数値を入力してください。";
-        output.className = "result error";
+      if (!levelPower || !battlePower || battlePower >= levelPower) {
+        output.innerText = "正しい値を入力してください。";
         output.style.display = "block";
-        return;
-      }
-
-      if (
-        !Number.isInteger(levelPower) ||
-        !Number.isInteger(battlePower) ||
-        levelPower <= 0 ||
-        battlePower <= 0
-      ) {
-        output.innerText = "両方とも1以上の整数を入力してください。";
-        output.className = "result error";
-        output.style.display = "block";
-        return;
-      }
-      
-      if (battlePower >= levelPower) {
-        output.innerText = "バトリ編成5体合計はレベルリンク戦闘力より小さい必要があります。";
-        output.className = "result error";
-        output.style.display = "block";
+        share.style.display = "none";
         return;
       }
 
@@ -140,10 +142,7 @@
       else if (levelPower >= 1000000000) rank = "A";
       else if (levelPower >= 500000000) rank = "B";
 
-      const match = fgiTable.find(row =>
-        row.rank === rank && fgi >= row.min && fgi < row.max
-      );
-
+      const match = fgiTable.find(row => row.rank === rank && fgi >= row.min && fgi < row.max);
       const style = match ? match.style : "不明";
 
       output.innerHTML = `
@@ -152,7 +151,22 @@
         <strong>育成スタイル:</strong> ${style}
       `;
       output.style.display = "block";
-      output.className = "result success";
+
+      const shareText = `【メメントモリ育成スタイル診断結果】
+育成スタイル: ${style}
+
+FGI(集中育成指数): ${fgi.toFixed(3)}
+レベルリンク戦闘力ランク: ${rank}
+
+メメントモリ育成スタイル診断の画像（リンク先は下記）
+https://harupo.github.io/mememori/
+
+#メメントモリ`;
+
+      const encodedText = encodeURIComponent(shareText);
+      const shareUrl = `https://twitter.com/intent/tweet?text=${encodedText}`;
+      share.innerHTML = `<a href="${shareUrl}" target="_blank"><span class="material-icons">share</span>Xでシェアする</a>`;
+      share.style.display = "block";
     }
   </script>
 </body>
