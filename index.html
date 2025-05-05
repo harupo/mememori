@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>育成スタイル診断</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2em;
+      background: #f7f7f7;
+      margin: 0;
+    }
+    .container {
+      max-width: 480px;
+      margin: auto;
+      background: #fff;
+      padding: 2em;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    label {
+      font-weight: bold;
+      margin-top: 1em;
+      display: block;
+    }
+    input, button {
+      font-size: 1em;
+      margin: 10px 0;
+      padding: 0.75em;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .result {
+      margin-top: 20px;
+      background: #eef;
+      padding: 1em;
+      border-radius: 8px;
+      font-size: 1.1em;
+    }
+
+    @media (max-width: 400px) {
+      body {
+        padding: 1em;
+      }
+      .container {
+        padding: 1em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>育成スタイル診断</h1>
+
+    <label for="levelPower">レベルリンク戦闘力</label>
+    <input type="number" id="levelPower" placeholder="例: 123456789">
+
+    <label for="battlePower">バトリ編成5体合計</label>
+    <input type="number" id="battlePower" placeholder="例: 23456789">
+
+    <button onclick="diagnose()">診断する</button>
+
+    <div id="output" class="result" style="display:none;"></div>
+  </div>
+
+  <script>
+    const fgiTable = [
+      { rank: "SS", min: 0, max: 0.126, style: "超分散型～分散型" },
+      { rank: "SS", min: 0.126, max: 0.132, style: "バランス分散型" },
+      { rank: "SS", min: 0.132, max: 1.000, style: "準メイン集中型～メイン集中型" },
+      { rank: "S", min: 0, max: 0.146, style: "超分散型～分散型" },
+      { rank: "S", min: 0.146, max: 0.162, style: "バランス分散型" },
+      { rank: "S", min: 0.162, max: 1.000, style: "準メイン集中型～メイン集中型" },
+      { rank: "A", min: 0, max: 0.164, style: "超分散型～分散型" },
+      { rank: "A", min: 0.164, max: 0.215, style: "バランス分散型" },
+      { rank: "A", min: 0.215, max: 1.000, style: "準メイン集中型～メイン集中型" },
+      { rank: "B", min: 0, max: 0.188, style: "超分散型～分散型" },
+      { rank: "B", min: 0.188, max: 0.242, style: "バランス分散型" },
+      { rank: "B", min: 0.242, max: 1.000, style: "準メイン集中型～メイン集中型" },
+      { rank: "C", min: 0, max: 0.230, style: "超分散型～分散型" },
+      { rank: "C", min: 0.230, max: 0.278, style: "バランス分散型" },
+      { rank: "C", min: 0.278, max: 1.000, style: "準メイン集中型～メイン集中型" },
+    ];
+
+    function diagnose() {
+      const levelPower = Number(document.getElementById("levelPower").value);
+      const battlePower = Number(document.getElementById("battlePower").value);
+      const output = document.getElementById("output");
+
+      if (!levelPower || !battlePower) {
+        output.innerText = "両方の数値を入力してください。";
+        output.style.display = "block";
+        return;
+      }
+
+      const fgi = battlePower / levelPower;
+      let rank = "C";
+      if (levelPower >= 6000000000) rank = "SS";
+      else if (levelPower >= 3000000000) rank = "S";
+      else if (levelPower >= 1000000000) rank = "A";
+      else if (levelPower >= 500000000) rank = "B";
+
+      const match = fgiTable.find(row =>
+        row.rank === rank && fgi >= row.min && fgi < row.max
+      );
+
+      const style = match ? match.style : "不明";
+
+      output.innerHTML = `
+        <strong>FGI:</strong> ${fgi.toFixed(3)}<br>
+        <strong>ランク:</strong> ${rank}<br>
+        <strong>育成スタイル:</strong> ${style}
+      `;
+      output.style.display = "block";
+    }
+  </script>
+</body>
+</html>
