@@ -64,10 +64,10 @@
     <h1>育成スタイル診断</h1>
 
     <label for="levelPower">レベルリンク戦闘力</label>
-    <input type="number" id="levelPower" placeholder="例: 123456789">
+    <input type="number" id="levelPower" placeholder="例: 123456789" step="1" min="1">
 
     <label for="battlePower">バトリ編成5体合計</label>
-    <input type="number" id="battlePower" placeholder="例: 23456789">
+    <input type="number" id="battlePower" placeholder="例: 23456789" step="1" min="1">
 
     <button onclick="diagnose()">診断する</button>
 
@@ -104,6 +104,17 @@
         return;
       }
 
+      if (
+        !Number.isInteger(levelPower) ||
+        !Number.isInteger(battlePower) ||
+        levelPower <= 0 ||
+        battlePower <= 0
+      ) {
+        output.innerText = "両方とも1以上の整数を入力してください。";
+        output.style.display = "block";
+        return;
+      }
+      
       const fgi = battlePower / levelPower;
       let rank = "C";
       if (levelPower >= 6000000000) rank = "SS";
