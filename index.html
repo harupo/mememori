@@ -22,7 +22,8 @@
       font-family: 'Noto Sans JP', sans-serif;
       background: #f5f9fc;
       display: flex;
-      justify-content: center;
+      flex-direction: column; /* 縦に並べる */
+      align-items: center;
     }
     .container {
       background: #ffffff;
@@ -32,6 +33,7 @@
       width: 100%;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
       text-align: center;
+      margin-bottom: 2em; /* コンテナ間の余白を追加 */
     }
     h1 {
       font-size: 1.8em;
@@ -99,10 +101,63 @@
     .share .material-icons {
       margin-right: 0.4em;
     }
+    #rank_definitions {
+      margin-top: 2em;
+      display: none;
+    }
+    #rank_definitions table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1em;
+    }
+    #rank_definitions th, #rank_definitions td {
+      border: 1px solid #ccc;
+      padding: 0.5em;
+    }
+    #rank_definitions th {
+      background: #f9f9f9;
+    }
+    #fgi_details table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1em;
+    }
+    #fgi_details th, #fgi_details td {
+      border: 1px solid #ccc;
+      padding: 0.5em;
+    }
+    #fgi_details th {
+      background: #f9f9f9;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1em;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.5em;
+    }
+    th {
+      background: #f9f9f9;
+    }
+
+    @keyframes blink {
+      0%, 100% {
+        background-color: #f9f9f9; /* 元の背景色 */
+      }
+      50% {
+        background-color: #fff7d6; /* かわいい黄色 */
+      }
+    }
+
+    .highlight {
+      animation: blink 1.5s infinite; /* 1.5秒でゆっくり点滅 */
+    }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="container" id="simulator">
     <h1>メメントモリ<br>育成スタイル診断</h1>
 
     <label><span class="material-icons">show_chart</span>レベルリンク戦闘力</label>
@@ -119,6 +174,45 @@
 
     <div id="output" class="result" style="display:none;"></div>
     <div id="share" class="share" style="display:none;"></div>
+  </div>
+
+  <div class="container" id="fgi_info" style="display: none;">
+    <h2>ランクとFGIに関する補足情報</h2>
+    <div id="rank_definitions">
+      <h3>ランクの定義</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>ランク</th>
+            <th>レベルリンク戦闘力範囲</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>SS</td>
+            <td>60億以上</td>
+          </tr>
+          <tr>
+            <td>S</td>
+            <td>30億～60億未満</td>
+          </tr>
+          <tr>
+            <td>A</td>
+            <td>10億～30億未満</td>
+          </tr>
+          <tr>
+            <td>B</td>
+            <td>5億～10億未満</td>
+          </tr>
+          <tr>
+            <td>C</td>
+            <td>5億未満</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>判定ランクにおけるFGIと育成スタイル</h3>
+    <div id="fgi_details"></div>
   </div>
 
   <script>
@@ -146,28 +240,35 @@
       const output = document.getElementById("output");
       const share = document.getElementById("share");
       const options = document.getElementById("options");
+      const fgiDetails = document.getElementById("fgi_details");
+      const fgiInfo = document.getElementById("fgi_info");
+      const rankDefinitions = document.getElementById("rank_definitions");
+
+      // Reset output and other elements
+      output.style.display = "none";
+      output.innerHTML = "";
+      share.style.display = "none";
+      share.innerHTML = "";
+      options.style.display = "none";
+      fgiInfo.style.display = "none";
+      fgiDetails.innerHTML = "";
+      rankDefinitions.style.display = "none";
 
       if (!levelPower || !battlePower) {
         output.innerText = "レベルリンク戦闘力とバトリ編成5体合計の両方を入力してください。";
         output.style.display = "block";
-        share.style.display = "none";
-        options.style.display = "none";
         return;
       }
 
       if (battlePower >= levelPower) {
         output.innerText = "バトリ編成5体合計は、レベルリンク戦闘力より小さい必要があります。";
         output.style.display = "block";
-        share.style.display = "none";
-        options.style.display = "none";
         return;
       }
 
       if (levelPower >= 100000000000 || battlePower >= 100000000000) {
         output.innerText = "戦闘力は1000億未満にしてください。";
         output.style.display = "block";
-        share.style.display = "none";
-        options.style.display = "none";
         return;
       }
 
@@ -188,6 +289,69 @@
       `;
       output.style.display = "block";
       options.style.display = "block";
+
+      const rankDetails = fgiTable
+        .filter(row => row.rank === rank)
+        .map(row => `
+          <tr>
+            <td>${row.rank}</td>
+            <td>${row.min.toFixed(3)} - ${row.max.toFixed(3)}</td>
+            <td>${row.style}</td>
+          </tr>
+        `)
+        .join("");
+
+      fgiDetails.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>ランク</th>
+              <th>FGI範囲</th>
+              <th>育成スタイル</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rankDetails}
+          </tbody>
+        </table>
+      `;
+
+      fgiInfo.style.display = "block";
+      rankDefinitions.style.display = "block";
+
+      // Highlight the matching rank row in "ランクの定義"
+      const rankDefinitionsTable = document.querySelector("#rank_definitions tbody");
+      const rankRows = rankDefinitionsTable.querySelectorAll("tr");
+
+      // Remove existing highlights
+      rankRows.forEach(row => row.classList.remove("highlight"));
+
+      // Highlight the matching rank row
+      rankRows.forEach(row => {
+        if (row.querySelector("td")?.innerText === rank) {
+          row.classList.add("highlight");
+        }
+      });
+
+      // Highlight the matching FGI row in "判定ランクにおけるFGIと育成スタイル"
+      const fgiDetailsTable = document.querySelector("#fgi_details tbody");
+      const fgiRows = fgiDetailsTable.querySelectorAll("tr");
+
+      // Remove existing highlights
+      fgiRows.forEach(row => row.classList.remove("highlight"));
+
+      // Highlight the matching FGI row
+      fgiRows.forEach(row => {
+        const cells = row.querySelectorAll("td");
+        const rankCell = cells[0]?.innerText;
+        const rangeCell = cells[1]?.innerText.split(" - ");
+        const min = parseFloat(rangeCell[0]);
+        const max = parseFloat(rangeCell[1]);
+
+        if (rankCell === rank && fgi >= min && fgi < max) {
+          row.classList.add("highlight");
+        }
+      });
 
       const includeDetails = document.getElementById("includeDetails").checked;
       let shareText = `【メメントモリ育成スタイル診断結果】\n\n育成スタイル: ${style}\n\nFGI(集中育成指数): ${fgi.toFixed(3)}\nレベルリンク戦闘力ランク: ${rank}`;
