@@ -125,19 +125,40 @@ th {
 }
 @keyframes blink {
   0%, 100% {
-    background-color: #f9f9f9;
+    background-color: #fefcf2; /* より白っぽい柔らかい黄色 */
   }
   50% {
-    background-color: #fff7d6;
+    background-color: #fff4b2; /* 明るいパステルイエロー */
   }
 }
+
 .highlight {
   animation: blink 1.5s infinite;
 }
+#fgi_info {
+  display: none;
+}
+
 #additional_info {
-  text-align: left;
+  display: none;
+  text-align: left; /* 左寄せに設定 */
+  margin-top: 2em; /* 上部に余白を追加 */
+}
+
+#additional_info ul {
+  padding-left: 20px; /* 箇条書きのインデントを調整 */
+  list-style-position: outside; /* 箇条書きのマーカーを外側に配置 */
+}
+
+#fgi_details {
   margin-top: 2em;
 }
+
+div[style="text-align: center; margin-top: 2em;"] {
+  text-align: center;
+  margin-top: 2em;
+}
+
 #battlePowerInputs input {
   display: block;
   width: 100%;
