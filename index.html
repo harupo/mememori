@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css">
   <meta property="og:title" content="メメントモリ育成スタイル診断">
   <meta property="og:description" content="育成スタイル・集中指数・戦闘力ランクがわかる診断ツールです。">
   <meta property="og:image" content="https://harupo.github.io/mememori/harupo_meme.png">
@@ -15,146 +16,6 @@
   <meta name="twitter:title" content="メメントモリ育成スタイル診断">
   <meta name="twitter:description" content="育成スタイル・集中指数・戦闘力ランクがわかる診断ツールです。">
   <meta name="twitter:image" content="https://harupo.github.io/mememori/harupo_meme.png">
-  <style>
-    body {
-      margin: 0;
-      padding: 2em;
-      font-family: 'Noto Sans JP', sans-serif;
-      background: #f5f9fc;
-      display: flex;
-      flex-direction: column; /* 縦に並べる */
-      align-items: center;
-    }
-    .container {
-      background: #ffffff;
-      border-radius: 16px;
-      padding: 2em;
-      max-width: 420px;
-      width: 100%;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-      text-align: center;
-      margin-bottom: 2em; /* コンテナ間の余白を追加 */
-    }
-    h1 {
-      font-size: 1.8em;
-      font-weight: 700;
-      margin-bottom: 0.5em;
-    }
-    label {
-      display: block;
-      text-align: left;
-      margin-top: 1.2em;
-      margin-bottom: 0.2em;
-      font-weight: bold;
-      color: #333;
-    }
-    .material-icons {
-      vertical-align: middle;
-      margin-right: 0.3em;
-      color: #888;
-    }
-    input[type="number"] {
-      width: 100%;
-      padding: 0.8em;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      font-size: 1em;
-      background: #f9f9f9;
-      box-sizing: border-box;
-    }
-    button {
-      width: 100%;
-      margin-top: 1.5em;
-      padding: 0.9em;
-      font-size: 1em;
-      border: 2px solid #b8daff;
-      background-color: #e3f0ff;
-      color: #003e7e;
-      border-radius: 10px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    button:hover {
-      background-color: #d1eaff;
-    }
-    .result {
-      margin-top: 2em;
-      padding: 1.2em;
-      background: #f0f8ff;
-      border-left: 5px solid #89c4f4;
-      border-radius: 10px;
-      font-size: 0.95em;
-      text-align: left;
-    }
-    .options, .share {
-      margin-top: 1.5em;
-      text-align: center;
-    }
-    .share a {
-      text-decoration: none;
-      color: #0077cc;
-      font-weight: bold;
-      display: inline-flex;
-      align-items: center;
-    }
-    .share .material-icons {
-      margin-right: 0.4em;
-    }
-    #rank_definitions {
-      margin-top: 2em;
-      display: none;
-    }
-    #rank_definitions table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1em;
-    }
-    #rank_definitions th, #rank_definitions td {
-      border: 1px solid #ccc;
-      padding: 0.5em;
-    }
-    #rank_definitions th {
-      background: #f9f9f9;
-    }
-    #fgi_details table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1em;
-    }
-    #fgi_details th, #fgi_details td {
-      border: 1px solid #ccc;
-      padding: 0.5em;
-    }
-    #fgi_details th {
-      background: #f9f9f9;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1em;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 0.5em;
-    }
-    th {
-      background: #f9f9f9;
-    }
-
-    @keyframes blink {
-      0%, 100% {
-        background-color: #f9f9f9; /* 元の背景色 */
-      }
-      50% {
-        background-color: #fff7d6; /* かわいい黄色 */
-      }
-    }
-
-    .highlight {
-      animation: blink 1.5s infinite; /* 1.5秒でゆっくり点滅 */
-    }
-  </style>
 </head>
 <body>
   <div class="container" id="simulator">
@@ -163,8 +24,14 @@
     <label><span class="material-icons">show_chart</span>レベルリンク戦闘力</label>
     <input type="number" id="levelPower" placeholder="例: 123456789" />
 
-    <label><span class="material-icons">groups</span>バトリ編成5体合計</label>
-    <input type="number" id="battlePower" placeholder="例: 23456789" />
+    <label><span class="material-icons">groups</span>バトリ編成5体の戦闘力</label>
+    <div id="battlePowerInputs">
+      <input type="number" id="battlePower1" placeholder="1体目の戦闘力" />
+      <input type="number" id="battlePower2" placeholder="2体目の戦闘力" />
+      <input type="number" id="battlePower3" placeholder="3体目の戦闘力" />
+      <input type="number" id="battlePower4" placeholder="4体目の戦闘力" />
+      <input type="number" id="battlePower5" placeholder="5体目の戦闘力" />
+    </div>
 
     <button onclick="diagnose()"><span class="material-icons">insights</span>診断する</button>
 
@@ -178,6 +45,12 @@
 
   <div class="container" id="fgi_info" style="display: none;">
     <h2>ランクとFGIに関する補足情報</h2>
+    
+    <div id="additional_info" style="display: none; margin-top: 2em;">
+      <p id="next_rank_info"></p>
+      <p id="next_style_info"></p>
+    </div>
+
     <div id="rank_definitions">
       <h3>ランクの定義</h3>
       <table>
@@ -211,162 +84,11 @@
         </tbody>
       </table>
     </div>
+
     <h3>判定ランクにおけるFGIと育成スタイル</h3>
     <div id="fgi_details"></div>
   </div>
 
-  <script>
-    const fgiTable = [
-      { rank: "SS", min: 0, max: 0.126, style: "超分散型～分散型" },
-      { rank: "SS", min: 0.126, max: 0.132, style: "バランス分散型" },
-      { rank: "SS", min: 0.132, max: 1.000, style: "準メイン集中型～メイン集中型" },
-      { rank: "S", min: 0, max: 0.146, style: "超分散型～分散型" },
-      { rank: "S", min: 0.146, max: 0.162, style: "バランス分散型" },
-      { rank: "S", min: 0.162, max: 1.000, style: "準メイン集中型～メイン集中型" },
-      { rank: "A", min: 0, max: 0.164, style: "超分散型～分散型" },
-      { rank: "A", min: 0.164, max: 0.215, style: "バランス分散型" },
-      { rank: "A", min: 0.215, max: 1.000, style: "準メイン集中型～メイン集中型" },
-      { rank: "B", min: 0, max: 0.188, style: "超分散型～分散型" },
-      { rank: "B", min: 0.188, max: 0.242, style: "バランス分散型" },
-      { rank: "B", min: 0.242, max: 1.000, style: "準メイン集中型～メイン集中型" },
-      { rank: "C", min: 0, max: 0.230, style: "超分散型～分散型" },
-      { rank: "C", min: 0.230, max: 0.278, style: "バランス分散型" },
-      { rank: "C", min: 0.278, max: 1.000, style: "準メイン集中型～メイン集中型" },
-    ];
-
-    function diagnose() {
-      const levelPower = Number(document.getElementById("levelPower").value);
-      const battlePower = Number(document.getElementById("battlePower").value);
-      const output = document.getElementById("output");
-      const share = document.getElementById("share");
-      const options = document.getElementById("options");
-      const fgiDetails = document.getElementById("fgi_details");
-      const fgiInfo = document.getElementById("fgi_info");
-      const rankDefinitions = document.getElementById("rank_definitions");
-
-      // Reset output and other elements
-      output.style.display = "none";
-      output.innerHTML = "";
-      share.style.display = "none";
-      share.innerHTML = "";
-      options.style.display = "none";
-      fgiInfo.style.display = "none";
-      fgiDetails.innerHTML = "";
-      rankDefinitions.style.display = "none";
-
-      if (!levelPower || !battlePower) {
-        output.innerText = "レベルリンク戦闘力とバトリ編成5体合計の両方を入力してください。";
-        output.style.display = "block";
-        return;
-      }
-
-      if (battlePower >= levelPower) {
-        output.innerText = "バトリ編成5体合計は、レベルリンク戦闘力より小さい必要があります。";
-        output.style.display = "block";
-        return;
-      }
-
-      if (levelPower >= 100000000000 || battlePower >= 100000000000) {
-        output.innerText = "戦闘力は1000億未満にしてください。";
-        output.style.display = "block";
-        return;
-      }
-
-      const fgi = battlePower / levelPower;
-      let rank = "C";
-      if (levelPower >= 6000000000) rank = "SS";
-      else if (levelPower >= 3000000000) rank = "S";
-      else if (levelPower >= 1000000000) rank = "A";
-      else if (levelPower >= 500000000) rank = "B";
-
-      const match = fgiTable.find(row => row.rank === rank && fgi >= row.min && fgi < row.max);
-      const style = match ? match.style : "不明";
-
-      output.innerHTML = `
-        <strong>FGI:</strong> ${fgi.toFixed(3)}<br>
-        <strong>ランク:</strong> ${rank}<br>
-        <strong>育成スタイル:</strong> ${style}
-      `;
-      output.style.display = "block";
-      options.style.display = "block";
-
-      const rankDetails = fgiTable
-        .filter(row => row.rank === rank)
-        .map(row => `
-          <tr>
-            <td>${row.rank}</td>
-            <td>${row.min.toFixed(3)} - ${row.max.toFixed(3)}</td>
-            <td>${row.style}</td>
-          </tr>
-        `)
-        .join("");
-
-      fgiDetails.innerHTML = `
-        <table>
-          <thead>
-            <tr>
-              <th>ランク</th>
-              <th>FGI範囲</th>
-              <th>育成スタイル</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rankDetails}
-          </tbody>
-        </table>
-      `;
-
-      fgiInfo.style.display = "block";
-      rankDefinitions.style.display = "block";
-
-      // Highlight the matching rank row in "ランクの定義"
-      const rankDefinitionsTable = document.querySelector("#rank_definitions tbody");
-      const rankRows = rankDefinitionsTable.querySelectorAll("tr");
-
-      // Remove existing highlights
-      rankRows.forEach(row => row.classList.remove("highlight"));
-
-      // Highlight the matching rank row
-      rankRows.forEach(row => {
-        if (row.querySelector("td")?.innerText === rank) {
-          row.classList.add("highlight");
-        }
-      });
-
-      // Highlight the matching FGI row in "判定ランクにおけるFGIと育成スタイル"
-      const fgiDetailsTable = document.querySelector("#fgi_details tbody");
-      const fgiRows = fgiDetailsTable.querySelectorAll("tr");
-
-      // Remove existing highlights
-      fgiRows.forEach(row => row.classList.remove("highlight"));
-
-      // Highlight the matching FGI row
-      fgiRows.forEach(row => {
-        const cells = row.querySelectorAll("td");
-        const rankCell = cells[0]?.innerText;
-        const rangeCell = cells[1]?.innerText.split(" - ");
-        const min = parseFloat(rangeCell[0]);
-        const max = parseFloat(rangeCell[1]);
-
-        if (rankCell === rank && fgi >= min && fgi < max) {
-          row.classList.add("highlight");
-        }
-      });
-
-      const includeDetails = document.getElementById("includeDetails").checked;
-      let shareText = `【メメントモリ育成スタイル診断結果】\n\n育成スタイル: ${style}\n\nFGI(集中育成指数): ${fgi.toFixed(3)}\nレベルリンク戦闘力ランク: ${rank}`;
-
-      if (includeDetails) {
-        shareText += `\n\nレベルリンク戦闘力: ${(levelPower / 1e8).toFixed(1)}億\nバトリ編成5体合計 : ${(battlePower / 1e8).toFixed(1)}億`;
-      }
-
-      shareText += `\n\nhttps://harupo.github.io/mememori/`;
-
-      const encodedText = encodeURIComponent(shareText);
-      const shareUrl = `https://twitter.com/intent/tweet?text=${encodedText}`;
-      share.innerHTML = `<a href="${shareUrl}" target="_blank"><span class="material-icons">share</span>Xでシェアする</a>`;
-      share.style.display = "block";
-    }
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
