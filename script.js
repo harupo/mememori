@@ -84,7 +84,7 @@ function diagnose() {
   const style = match ? match.style : "不明";
 
   output.innerHTML = `
-      <strong>FGI:</strong> ${fgi.toFixed(3)}<br>
+      <strong>FGI(育成集中指数):</strong> ${fgi.toFixed(3)}<br>
       <strong>ランク:</strong> ${rank}<br>
       <strong>育成スタイル:</strong> ${style}
     `;
