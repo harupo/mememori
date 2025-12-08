@@ -47,6 +47,23 @@ function drawFgiMap(fgi, levelPower, rank, style) {
     // レベルリンク戦闘力を億単位に変換
     const powerInOku = levelPower / 1e8;
     
+    // 現在のランクのFGI閾値を取得
+    const rankThresholds = fgiTable.filter(row => row.rank === rank);
+    const dispersedMax = rankThresholds.find(r => r.style === "分散型")?.max || 0.15;
+    const balancedMax = rankThresholds.find(r => r.style === "バランス型")?.max || 0.25;
+    
+    // FGI上限（表示用）
+    const fgiMax = 0.35;
+    
+    // Y座標計算用の関数
+    const fgiToY = (fgiVal) => 270 - Math.min(fgiVal / fgiMax, 1) * 230;
+    
+    // エリア境界のY座標を計算
+    const dispersedY = fgiToY(dispersedMax);  // 分散とバランスの境界
+    const balancedY = fgiToY(balancedMax);    // バランスと集中の境界
+    const topY = 40;
+    const bottomY = 270;
+    
     // X座標計算（対数スケールで0-100億を表現）
     // C: 0-5億, B: 5-10億, A: 10-30億, S: 30-60億, SS: 60-100億
     let playerX;
@@ -62,8 +79,8 @@ function drawFgiMap(fgi, levelPower, rank, style) {
         playerX = 390 + Math.min((powerInOku - 60) / 40, 1) * 75; // SS領域: 390-465
     }
     
-    // Y座標計算（FGI 0-0.4 を 270-40 にマッピング）
-    const playerY = 270 - Math.min(fgi / 0.4, 1) * 230;
+    // Y座標計算
+    const playerY = fgiToY(fgi);
     
     // ステータスボックスの位置計算（グラフ内に収める）
     const boxWidth = 105;
@@ -113,9 +130,9 @@ function drawFgiMap(fgi, levelPower, rank, style) {
         
         <!-- エリア分け（クリップで丸角内に収める） -->
         <g clip-path="url(#graphClip)">
-            <rect x="65" y="193" width="400" height="77" fill="${mapColors.areaGreen}" opacity="0.6"/>
-            <rect x="65" y="116" width="400" height="77" fill="${mapColors.areaYellow}" opacity="0.6"/>
-            <rect x="65" y="40" width="400" height="76" fill="${mapColors.areaRed}" opacity="0.6"/>
+            <rect x="65" y="${dispersedY}" width="400" height="${bottomY - dispersedY}" fill="${mapColors.areaGreen}" opacity="0.6"/>
+            <rect x="65" y="${balancedY}" width="400" height="${dispersedY - balancedY}" fill="${mapColors.areaYellow}" opacity="0.6"/>
+            <rect x="65" y="${topY}" width="400" height="${balancedY - topY}" fill="${mapColors.areaRed}" opacity="0.6"/>
         </g>
         
         <!-- 縦区切り（ランク境界） -->
@@ -123,6 +140,10 @@ function drawFgiMap(fgi, levelPower, rank, style) {
         <line x1="180" y1="40" x2="180" y2="270" stroke="${mapColors.base}" stroke-width="1"/>
         <line x1="305" y1="40" x2="305" y2="270" stroke="${mapColors.base}" stroke-width="1"/>
         <line x1="390" y1="40" x2="390" y2="270" stroke="${mapColors.base}" stroke-width="1"/>
+        
+        <!-- 横区切り（FGIエリア境界） -->
+        <line x1="65" y1="${dispersedY}" x2="465" y2="${dispersedY}" stroke="${mapColors.base}" stroke-width="1" stroke-dasharray="4,2"/>
+        <line x1="65" y1="${balancedY}" x2="465" y2="${balancedY}" stroke="${mapColors.base}" stroke-width="1" stroke-dasharray="4,2"/>
         
         <!-- 外枠 -->
         <rect x="65" y="40" width="400" height="230" fill="none" stroke="${mapColors.dark}" stroke-width="2" rx="10"/>
@@ -165,9 +186,9 @@ function drawFgiMap(fgi, levelPower, rank, style) {
         <text x="265" y="328" fill="${mapColors.textLight}" font-size="13" text-anchor="middle">レベルリンク戦闘力 →</text>
         
         <!-- FGIラベル -->
-        <text x="55" y="82" fill="${mapColors.labelRed}" font-size="13" text-anchor="end">集中</text>
-        <text x="55" y="158" fill="${mapColors.labelYellow}" font-size="13" text-anchor="end">バランス</text>
-        <text x="55" y="235" fill="${mapColors.labelGreen}" font-size="13" text-anchor="end">分散</text>
+        <text x="55" y="${topY + (balancedY - topY) / 2 + 5}" fill="${mapColors.labelRed}" font-size="13" text-anchor="end">集中</text>
+        <text x="55" y="${balancedY + (dispersedY - balancedY) / 2 + 5}" fill="${mapColors.labelYellow}" font-size="13" text-anchor="end">バランス</text>
+        <text x="55" y="${dispersedY + (bottomY - dispersedY) / 2 + 5}" fill="${mapColors.labelGreen}" font-size="13" text-anchor="end">分散</text>
     </svg>
     `;
     
