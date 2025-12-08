@@ -83,7 +83,7 @@ function drawFgiMap(fgi, levelPower, rank, style) {
     const playerY = fgiToY(fgi);
     
     // ステータスボックスの位置計算（グラフ内に収める）
-    const boxWidth = 105;
+    const boxWidth = 120;
     const boxHeight = 80;
     const graphLeft = 65;
     const graphRight = 465;
