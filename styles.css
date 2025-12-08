@@ -125,10 +125,10 @@ th {
 }
 @keyframes blink {
   0%, 100% {
-    background-color: #fefcf2; /* より白っぽい柔らかい黄色 */
+    background-color: #fefcf2;
   }
   50% {
-    background-color: #fff4b2; /* 明るいパステルイエロー */
+    background-color: #fff4b2;
   }
 }
 
@@ -141,13 +141,13 @@ th {
 
 #additional_info {
   display: none;
-  text-align: left; /* 左寄せに設定 */
-  margin-top: 2em; /* 上部に余白を追加 */
+  text-align: left;
+  margin-top: 2em;
 }
 
 #additional_info ul {
-  padding-left: 20px; /* 箇条書きのインデントを調整 */
-  list-style-position: outside; /* 箇条書きのマーカーを外側に配置 */
+  padding-left: 20px;
+  list-style-position: outside;
 }
 
 #fgi_details {
@@ -163,9 +163,74 @@ div[style="text-align: center; margin-top: 2em;"] {
   display: block;
   width: 100%;
   padding: 10px;
-  margin-bottom: 10px; /* 各入力欄の間に余白を追加 */
+  margin-bottom: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
   box-sizing: border-box;
   font-size: 16px;
+}
+
+/* FGIマップ用スタイル */
+#fgi_map {
+  margin-top: 1.5em;
+  display: flex;
+  justify-content: center;
+}
+
+#fgi_map svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 画像保存ボタン */
+.save-image {
+  margin-top: 1em;
+  text-align: center;
+}
+
+.save-image button {
+  width: auto;
+  padding: 0.6em 1.2em;
+  font-size: 0.9em;
+  background-color: #f0f8ff;
+  border: 1px solid #b8daff;
+  color: #2670a8;
+}
+
+.save-image-hint {
+  margin-top: 0.5em;
+  font-size: 0.85em;
+  color: #888;
+}
+
+/* フォーカスフレームアニメーション */
+@keyframes frameAppear {
+  0% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.focus-frame {
+  animation: frameAppear 0.4s ease-out forwards;
+}
+
+/* ステータスボックスアニメーション */
+@keyframes statusAppear {
+  0% {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.status-box {
+  animation: statusAppear 0.3s ease-out forwards;
 }
