@@ -138,7 +138,7 @@ function drawFgiMap(fgi, levelPower, rank, style) {
     
     // SVG生成（横幅をコンテナいっぱいに）
     const svgContent = `
-    <svg width="100%" viewBox="0 0 520 340" style="max-width: 520px;">
+    <svg xmlns="http://www.w3.org/2000/svg" width="520" height="340" viewBox="0 0 520 340">
         <defs>
             <!-- 丸角クリップパス -->
             <clipPath id="graphClip">
