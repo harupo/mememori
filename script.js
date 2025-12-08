@@ -81,25 +81,32 @@ function drawFgiMap(fgi, levelPower, rank, style) {
         playerY = balancedY - ratio * areaHeight;
     }
     
-    // X座標計算（対数スケールで0-100億を表現）
-    // C: 0-5億, B: 5-10億, A: 10-30億, S: 30-60億, SS: 60-100億
+    // X座標計算（5等分均等幅）
+    // グラフ領域: 65-465 (幅400)、各ランク幅80
+    const graphLeft = 65;
+    const rankWidth = 80;
+    
     let playerX;
     if (powerInOku < 5) {
-        playerX = 65 + (powerInOku / 5) * 45; // C領域: 65-110
+        // C領域: 65-145
+        playerX = graphLeft + (powerInOku / 5) * rankWidth;
     } else if (powerInOku < 10) {
-        playerX = 110 + ((powerInOku - 5) / 5) * 70; // B領域: 110-180
+        // B領域: 145-225
+        playerX = graphLeft + rankWidth + ((powerInOku - 5) / 5) * rankWidth;
     } else if (powerInOku < 30) {
-        playerX = 180 + ((powerInOku - 10) / 20) * 125; // A領域: 180-305
+        // A領域: 225-305
+        playerX = graphLeft + rankWidth * 2 + ((powerInOku - 10) / 20) * rankWidth;
     } else if (powerInOku < 60) {
-        playerX = 305 + ((powerInOku - 30) / 30) * 85; // S領域: 305-390
+        // S領域: 305-385
+        playerX = graphLeft + rankWidth * 3 + ((powerInOku - 30) / 30) * rankWidth;
     } else {
-        playerX = 390 + Math.min((powerInOku - 60) / 40, 1) * 75; // SS領域: 390-465
+        // SS領域: 385-465
+        playerX = graphLeft + rankWidth * 4 + Math.min((powerInOku - 60) / 40, 1) * rankWidth;
     }
     
     // ステータスボックスの位置計算（グラフ内に収める）
     const boxWidth = 120;
     const boxHeight = 80;
-    const graphLeft = 65;
     const graphRight = 465;
     const graphTop = 40;
     const graphBottom = 270;
@@ -149,11 +156,11 @@ function drawFgiMap(fgi, levelPower, rank, style) {
             <rect x="65" y="${topY}" width="400" height="${areaHeight}" fill="${mapColors.areaRed}" opacity="0.6"/>
         </g>
         
-        <!-- 縦区切り（ランク境界） -->
-        <line x1="110" y1="40" x2="110" y2="270" stroke="${mapColors.base}" stroke-width="1"/>
-        <line x1="180" y1="40" x2="180" y2="270" stroke="${mapColors.base}" stroke-width="1"/>
+        <!-- 縦区切り（ランク境界、均等幅） -->
+        <line x1="145" y1="40" x2="145" y2="270" stroke="${mapColors.base}" stroke-width="1"/>
+        <line x1="225" y1="40" x2="225" y2="270" stroke="${mapColors.base}" stroke-width="1"/>
         <line x1="305" y1="40" x2="305" y2="270" stroke="${mapColors.base}" stroke-width="1"/>
-        <line x1="390" y1="40" x2="390" y2="270" stroke="${mapColors.base}" stroke-width="1"/>
+        <line x1="385" y1="40" x2="385" y2="270" stroke="${mapColors.base}" stroke-width="1"/>
         
         <!-- 横区切り（FGIエリア境界、3等分） -->
         <line x1="65" y1="${topY + areaHeight}" x2="465" y2="${topY + areaHeight}" stroke="${mapColors.base}" stroke-width="1" stroke-dasharray="4,2"/>
@@ -178,7 +185,7 @@ function drawFgiMap(fgi, levelPower, rank, style) {
         </g>
         
         <!-- ステータスボックス -->
-        <g class="status-box" id="statusBox" style="opacity: 0;">
+        <g class="status-box" id="statusBox">
             <line x1="${lineStartX}" y1="${lineY}" x2="${lineEndX}" y2="${lineY}" stroke="${mapColors.dark}" stroke-width="2"/>
             <rect x="${boxX}" y="${boxY}" width="${boxWidth}" height="${boxHeight}" fill="${mapColors.bg}" stroke="${mapColors.darker}" stroke-width="2" rx="6"/>
             <text x="${boxX + boxWidth/2}" y="${boxY + 22}" text-anchor="middle" fill="${mapColors.darkest}" font-size="14" font-weight="bold">YOU</text>
@@ -189,12 +196,12 @@ function drawFgiMap(fgi, levelPower, rank, style) {
             <text x="${boxX + boxWidth - 12}" y="${boxY + 72}" text-anchor="end" fill="${mapColors.text}" font-size="15" font-weight="bold">${powerInOku.toFixed(1)}億</text>
         </g>
 
-        <!-- ランクラベル -->
-        <text x="83" y="300" fill="${mapColors.textLight}" font-size="16">C</text>
-        <text x="140" y="300" fill="${mapColors.textLight}" font-size="16">B</text>
-        <text x="238" y="300" fill="${mapColors.textLight}" font-size="16">A</text>
-        <text x="343" y="300" fill="${mapColors.textLight}" font-size="16">S</text>
-        <text x="418" y="300" fill="${mapColors.textLight}" font-size="16">SS</text>
+        <!-- ランクラベル（均等幅の中央） -->
+        <text x="105" y="300" fill="${mapColors.textLight}" font-size="16" text-anchor="middle">C</text>
+        <text x="185" y="300" fill="${mapColors.textLight}" font-size="16" text-anchor="middle">B</text>
+        <text x="265" y="300" fill="${mapColors.textLight}" font-size="16" text-anchor="middle">A</text>
+        <text x="345" y="300" fill="${mapColors.textLight}" font-size="16" text-anchor="middle">S</text>
+        <text x="425" y="300" fill="${mapColors.textLight}" font-size="16" text-anchor="middle">SS</text>
         
         <!-- 軸ラベル -->
         <text x="265" y="328" fill="${mapColors.textLight}" font-size="13" text-anchor="middle">レベルリンク戦闘力 →</text>
@@ -206,58 +213,40 @@ function drawFgiMap(fgi, levelPower, rank, style) {
     </svg>
     `;
     
-    fgiMap.innerHTML = svgContent;
-    fgiMap.style.display = "flex";
-    
-    // アニメーション実行
-    setTimeout(() => {
-        const statusBox = document.getElementById("statusBox");
-        if (statusBox) {
-            statusBox.style.opacity = "1";
-            statusBox.style.transition = "opacity 0.3s ease-out";
-        }
-    }, 500);
-}
-
-// FGIマップを画像としてダウンロード
-function downloadFgiMapAsImage() {
-    const svg = document.querySelector("#fgi_map svg");
-    if (!svg) return;
-    
-    // SVGをシリアライズ
-    const svgData = new XMLSerializer().serializeToString(svg);
-    
-    // Canvas作成
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    
-    // 高解像度で出力（2倍）
-    const scale = 2;
-    canvas.width = 520 * scale;
-    canvas.height = 340 * scale;
-    ctx.scale(scale, scale);
-    
-    // 背景を白に
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // SVGをImageとして読み込み
-    const img = new Image();
-    const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+    // SVGをPNG画像に変換して表示
+    const svgBlob = new Blob([svgContent], { type: "image/svg+xml;charset=utf-8" });
     const url = URL.createObjectURL(svgBlob);
     
+    const img = new Image();
     img.onload = function() {
+        // Canvas作成
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        
+        // 高解像度で出力（2倍）
+        const scale = 2;
+        canvas.width = 520 * scale;
+        canvas.height = 340 * scale;
+        ctx.scale(scale, scale);
+        
+        // 背景を白に
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, 520, 340);
+        
+        // SVGを描画
         ctx.drawImage(img, 0, 0, 520, 340);
         URL.revokeObjectURL(url);
         
-        // PNGとしてダウンロード
+        // PNGとして表示
         const pngUrl = canvas.toDataURL("image/png");
-        const downloadLink = document.createElement("a");
-        downloadLink.href = pngUrl;
-        downloadLink.download = "fgi_map.png";
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        document.body.removeChild(downloadLink);
+        const resultImg = document.createElement("img");
+        resultImg.src = pngUrl;
+        resultImg.style.maxWidth = "100%";
+        resultImg.style.borderRadius = "10px";
+        
+        fgiMap.innerHTML = "";
+        fgiMap.appendChild(resultImg);
+        fgiMap.style.display = "flex";
     };
     
     img.src = url;

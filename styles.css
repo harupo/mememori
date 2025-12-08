@@ -182,25 +182,10 @@ div[style="text-align: center; margin-top: 2em;"] {
   height: auto;
 }
 
-/* 画像保存ボタン */
-.save-image {
-  margin-top: 1em;
-  text-align: center;
-}
-
-.save-image button {
-  width: auto;
-  padding: 0.6em 1.2em;
-  font-size: 0.9em;
-  background-color: #f0f8ff;
-  border: 1px solid #b8daff;
-  color: #2670a8;
-}
-
-.save-image-hint {
-  margin-top: 0.5em;
-  font-size: 0.85em;
-  color: #888;
+#fgi_map img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
 }
 
 /* フォーカスフレームアニメーション */
