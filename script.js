@@ -2,24 +2,24 @@
 const fgiTable = [
     // SS: 60億以上
     { rank: "SS", min: 0, max: 0.119, style: "分散型" },
-    { rank: "SS", min: 0.119, max: 0.130, style: "バランス分散型" },
-    { rank: "SS", min: 0.130, max: 1.0, style: "集中型" },
+    { rank: "SS", min: 0.119, max: 0.133, style: "バランス型" },
+    { rank: "SS", min: 0.133, max: 1.0, style: "集中型" },
     // S: 30億〜59億
     { rank: "S", min: 0, max: 0.138, style: "分散型" },
-    { rank: "S", min: 0.138, max: 0.155, style: "バランス分散型" },
-    { rank: "S", min: 0.155, max: 1.0, style: "集中型" },
+    { rank: "S", min: 0.138, max: 0.158, style: "バランス型" },
+    { rank: "S", min: 0.158, max: 1.0, style: "集中型" },
     // A: 10億〜29億
-    { rank: "A", min: 0, max: 0.166, style: "分散型" },
-    { rank: "A", min: 0.166, max: 0.196, style: "バランス分散型" },
-    { rank: "A", min: 0.196, max: 1.0, style: "集中型" },
+    { rank: "A", min: 0, max: 0.168, style: "分散型" },
+    { rank: "A", min: 0.168, max: 0.194, style: "バランス型" },
+    { rank: "A", min: 0.194, max: 1.0, style: "集中型" },
     // B: 5億〜9億
-    { rank: "B", min: 0, max: 0.206, style: "分散型" },
-    { rank: "B", min: 0.206, max: 0.228, style: "バランス分散型" },
+    { rank: "B", min: 0, max: 0.207, style: "分散型" },
+    { rank: "B", min: 0.207, max: 0.228, style: "バランス型" },
     { rank: "B", min: 0.228, max: 1.0, style: "集中型" },
     // C: 5億未満
-    { rank: "C", min: 0, max: 0.234, style: "分散型" },
-    { rank: "C", min: 0.234, max: 0.265, style: "バランス分散型" },
-    { rank: "C", min: 0.265, max: 1.0, style: "集中型" },
+    { rank: "C", min: 0, max: 0.238, style: "分散型" },
+    { rank: "C", min: 0.238, max: 0.274, style: "バランス型" },
+    { rank: "C", min: 0.274, max: 1.0, style: "集中型" },
 ];
 
 // カラースキーム（#b8daff基準）
