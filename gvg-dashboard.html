@@ -28,6 +28,8 @@
   .controls button:hover{filter:brightness(1.2);} .controls button:disabled{opacity:.5;cursor:not-allowed;}
   .status-bar{padding:.6rem 2rem;font-size:.8rem;color:var(--text-dim);font-family:'JetBrains Mono',monospace;}
   .status-bar .ok{color:#2ecc71;} .status-bar .err{color:#e74c3c;} .status-bar .loading{color:#f39c12;}
+  .info-bar{border-bottom:1px solid var(--border);}
+  .info-row{padding:0 2rem .6rem;display:flex;gap:2rem;font-size:.8rem;font-family:'JetBrains Mono',monospace;color:var(--text-dim);}
   .dashboard{padding:1.5rem 2rem;display:grid;gap:1.5rem;}
   .summary-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;}
   .stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:1.2rem;text-align:center;}
@@ -94,24 +96,16 @@
   <button class="tab-btn active" data-tab="local" onclick="switchTab('local')">⚔️ ギルドバトル</button>
   <button class="tab-btn" data-tab="global" onclick="switchTab('global')">🌐 グランドバトル</button>
 </div>
-<div class="controls" id="ctrl-local">
-  <label>サーバー:</label>
-  <select id="l-srv"><option value="1">JP</option><option value="2">KR</option><option value="3">Asia</option><option value="4">NA</option><option value="5">EU</option><option value="6">Global</option></select>
-  <span id="l-ts" style="font-size:.8rem;color:var(--text-dim);margin-left:auto;"></span>
+<div class="info-bar" id="infoBar">
+  <div class="status-bar" id="statusBar">待機中…</div>
+  <div class="info-row">
+    <span id="lastUpdate"></span>
+    <span id="schedNext"></span>
+  </div>
 </div>
-<div class="controls hidden" id="ctrl-global">
-  <label>サーバー:</label>
-  <select id="g-srv"><option value="0">全サーバー</option><option value="1" selected>JP</option><option value="2">KR</option><option value="3">Asia</option><option value="4">NA</option><option value="5">EU</option><option value="6">Global</option></select>
-  <label>クラス:</label>
-  <select id="g-cls"><option value="0">全クラス</option><option value="1">Elite</option><option value="2">Expert</option><option value="3">Grand Master</option></select>
-  <span id="g-ts" style="font-size:.8rem;color:var(--text-dim);margin-left:auto;"></span>
-</div>
-<div class="controls" style="border-bottom:1px solid var(--border);">
-  <label>⏰ 自動更新:</label>
-  <input type="time" id="schedTime" value="22:00" style="font-family:'JetBrains Mono',monospace;font-size:.85rem;padding:.3rem .6rem;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);">
-  <span id="schedNext" style="font-size:.8rem;color:var(--text-dim);"></span>
-</div>
-<div class="status-bar" id="statusBar">待機中…</div>
+<select id="l-srv" class="hidden"><option value="1" selected>JP</option></select>
+<select id="g-srv" class="hidden"><option value="1" selected>JP</option></select>
+<select id="g-cls" class="hidden"><option value="0" selected>全クラス</option></select>
 
 <!-- ギルドバトル -->
 <div class="dashboard hidden" id="dash-local">
@@ -177,16 +171,16 @@ function gfGD(){return gWF?GD.filter(it=>it._wds.split(", ").includes(gWF)):GD;}
 
 async function fetchAll(){await fetchLocal();await fetchGlobal();}
 
+const SCHED_HOUR=22,SCHED_MIN=0;
+
 function schedNext(){
-  const el=document.getElementById("schedNext"),tv=document.getElementById("schedTime").value;
-  if(!tv){el.textContent="";return;}
-  const [h,m]=tv.split(":").map(Number),now=new Date();
-  const next=new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,m,0,0);
+  const el=document.getElementById("schedNext"),now=new Date();
+  const next=new Date(now.getFullYear(),now.getMonth(),now.getDate(),SCHED_HOUR,SCHED_MIN,0,0);
   if(next<=now)next.setDate(next.getDate()+1);
-  el.textContent=`次回: ${next.toLocaleString("ja-JP",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"})}`;
+  el.textContent=`⏰ 次回自動更新: ${next.toLocaleString("ja-JP",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"})}`;
   if(schedTimer)clearTimeout(schedTimer);
   const ms=next.getTime()-Date.now();
-  schedTimer=setTimeout(()=>{fetchAll().then(schedNext);},ms);
+  schedTimer=setTimeout(()=>{wgCache=null;fetchAll().then(schedNext);},ms);
 }
 
 function ss(t,c=""){document.getElementById("statusBar").innerHTML=`<span class="${c}">${t}</span>`;}
@@ -283,8 +277,6 @@ function bldFull(tb,items,fG,fS,isGw){
 
 function switchTab(tab){curTab=tab;
   document.querySelectorAll(".tab-btn").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
-  document.getElementById("ctrl-local").classList.toggle("hidden",tab!=="local");
-  document.getElementById("ctrl-global").classList.toggle("hidden",tab!=="global");
   document.getElementById("dash-local").classList.toggle("hidden",tab!=="local"||!LD.length);
   document.getElementById("dash-global").classList.toggle("hidden",tab!=="global"||!GD.length);
   document.getElementById("wf-float").classList.toggle("hidden",tab!=="global"||!gWF);
@@ -306,7 +298,7 @@ async function fetchLocal(){
       dn++;ss(`${tg.length}ワールド取得中… (${dn}/${tg.length})`,"loading");}
     const q=[...tg],ws=[];for(let i=0;i<10;i++)ws.push((async()=>{while(q.length){const w=q.shift();if(w!==undefined)await fw(w);}})());
     await Promise.all(ws);LD.sort((a,b)=>a.wid-b.wid);
-    if(lt>0)document.getElementById("l-ts").textContent=`データ時刻: ${new Date(lt*1000).toLocaleString("ja-JP")}`;
+    if(lt>0)document.getElementById("lastUpdate").textContent=`📋 最終更新: ${new Date(lt*1000).toLocaleString("ja-JP")}`;
     ss(`✓ ${LD.length}/${tg.length} ワールド取得完了`,"ok");
     document.getElementById("dash-local").classList.remove("hidden");renderL();
   }catch(e){ss(`✗ ${e.message}`,"err");}finally{fetchLock.local=false;}}
@@ -346,7 +338,7 @@ async function fetchGlobal(){
     const q=[...tasks],ws=[];for(let i=0;i<10;i++)ws.push((async()=>{while(q.length){const t=q.shift();if(t)await ft(t);}})());
     await Promise.all(ws);
     GD.sort((a,b)=>{if(a._sn!==b._sn)return a._sn.localeCompare(b._sn);if(a._gid!==b._gid)return a._gid-b._gid;if(a._cls!==b._cls)return a._cls-b._cls;return a._blk-b._blk;});
-    if(lt>0)document.getElementById("g-ts").textContent=`データ時刻: ${new Date(lt*1000).toLocaleString("ja-JP")}`;
+    if(lt>0)document.getElementById("lastUpdate").textContent=`📋 最終更新: ${new Date(lt*1000).toLocaleString("ja-JP")}`;
     ss(`✓ ${GD.length}/${tasks.length} ブロック取得完了`,"ok");
     document.getElementById("dash-global").classList.remove("hidden");renderG();
   }catch(e){ss(`✗ ${e.message}`,"err");}finally{fetchLock.global=false;}}
@@ -362,7 +354,7 @@ function renderG(){const fd=gfGD(),s=cntS(fd);
   renderGT();}
 function renderGT(){bldFull(document.getElementById("g-tB"),gfGD(),document.getElementById("g-fG"),document.getElementById("g-fS"),true);}
 
-document.addEventListener("DOMContentLoaded",()=>{fetchAll().then(schedNext);document.getElementById("schedTime").addEventListener("change",schedNext);});
+document.addEventListener("DOMContentLoaded",()=>{fetchAll().then(schedNext);});
 </script>
 </body>
 </html>
