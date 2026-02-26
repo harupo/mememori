@@ -47,7 +47,7 @@
   thead th{position:sticky;top:0;background:#1a1a26;padding:.6rem .8rem;text-align:left;font-weight:600;color:var(--text-dim);border-bottom:2px solid var(--border);white-space:nowrap;z-index:2;}
   tbody td{padding:.5rem .8rem;border-bottom:1px solid #1e1e2e;white-space:nowrap;}
   tbody tr:hover{background:var(--bg-card-hover);}
-  .castle-cell{font-weight:600;font-size:.78rem;}
+  .castle-cell{font-weight:600;font-size:.78rem;white-space:nowrap;}
   .tag-domination{display:inline-block;padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:700;color:#fff;background:linear-gradient(135deg,#ff6b6b,#ee5a24);}
   .tag-monopoly{display:inline-block;padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:700;color:#fff;background:var(--monopoly);}
   .tag-oligopoly{display:inline-block;padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:700;color:#fff;background:var(--oligopoly);}
@@ -56,10 +56,10 @@
   .filter-row input,.filter-row select{font-family:'Noto Sans JP',sans-serif;font-size:.82rem;padding:.3rem .6rem;border-radius:6px;border:1px solid var(--border);background:var(--bg-deep);color:var(--text);}
   .filter-row input{width:260px;}
   .hidden{display:none !important;}
-  .mono-item{display:flex;align-items:center;gap:.6rem;padding:.5rem .8rem;border-bottom:1px solid #1e1e2e;font-size:.82rem;}
+  .mono-item{display:flex;align-items:center;gap:.6rem;padding:.5rem .8rem;border-bottom:1px solid #1e1e2e;font-size:.82rem;min-width:max-content;}
   .mono-item:hover{background:var(--bg-card-hover);}
   .mono-item .world-id{font-family:'JetBrains Mono',monospace;font-weight:600;min-width:50px;flex-shrink:0;}
-  .mono-item .guild-name{flex:1;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .mono-item .guild-name{font-weight:600;white-space:nowrap;flex-shrink:0;}
   .mono-item .castle-count{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--text-dim);flex-shrink:0;}
   .mono-section-header{padding:.6rem .8rem .3rem;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-dim);}
   .mono-section-header.domination-header{color:var(--domination);}
@@ -80,7 +80,7 @@
     .summary-row{grid-template-columns:repeat(3,1fr);gap:.5rem;}
     .stat-card{padding:.8rem .5rem;} .stat-card .value{font-size:1.4rem;} .stat-card .label{font-size:.6rem;}
     .table-wrap{font-size:.75rem;} tbody td,thead th{padding:.4rem .5rem;}
-    .castle-cell{white-space:normal;word-break:break-all;}
+    .castle-cell{white-space:nowrap;}
   }
 </style>
 </head>
@@ -120,7 +120,7 @@
     <div class="stat-card"><div class="value" id="l-guilds">-</div><div class="label">ユニークギルド</div></div>
   </div>
   <div class="charts-row">
-    <div class="chart-card" style="overflow-y:auto;max-height:420px;"><h3>制覇・独占・寡占ワールド</h3><div id="l-side"></div></div>
+    <div class="chart-card" style="overflow:auto;max-height:420px;"><h3>制覇・独占・寡占ワールド</h3><div id="l-side"></div></div>
     <div class="chart-card"><h3>占有分布</h3><div class="chart-container"><canvas id="l-donut"></canvas></div></div>
   </div>
   <div class="table-card" id="l-domCard"><h3><span style="color:var(--domination);">👑 制覇</span> <span id="l-domC"></span></h3><div class="table-wrap" style="max-height:400px;"><table><thead><tr><th>World</th><th>制覇ギルド</th><th>城数</th></tr></thead><tbody id="l-domB"></tbody></table></div></div>
@@ -140,7 +140,7 @@
     <div class="stat-card"><div class="value" id="g-guilds">-</div><div class="label">ユニークギルド</div></div>
   </div>
   <div class="charts-row">
-    <div class="chart-card" style="overflow-y:auto;max-height:420px;"><h3>制覇・独占・寡占ブロック</h3><div id="g-side"></div></div>
+    <div class="chart-card" style="overflow:auto;max-height:420px;"><h3>制覇・独占・寡占ブロック</h3><div id="g-side"></div></div>
     <div class="chart-card"><h3>占有分布</h3><div class="chart-container"><canvas id="g-donut"></canvas></div></div>
   </div>
   <div class="table-card" id="g-domCard"><h3><span style="color:var(--domination);">👑 制覇</span> <span id="g-domC"></span></h3><div class="table-wrap" style="max-height:400px;"><table><thead><tr><th>サーバー</th><th>Group</th><th>所属ワールド</th><th>クラス</th><th>ブロック</th><th>制覇ギルド</th><th>城数</th></tr></thead><tbody id="g-domB"></tbody></table></div></div>
