@@ -102,7 +102,7 @@
 </div>
 <div class="controls hidden" id="ctrl-global">
   <label>サーバー:</label>
-  <select id="g-srv"><option value="0">全サーバー</option><option value="1">JP</option><option value="2">KR</option><option value="3">Asia</option><option value="4">NA</option><option value="5">EU</option><option value="6">Global</option></select>
+  <select id="g-srv"><option value="0">全サーバー</option><option value="1" selected>JP</option><option value="2">KR</option><option value="3">Asia</option><option value="4">NA</option><option value="5">EU</option><option value="6">Global</option></select>
   <label>クラス:</label>
   <select id="g-cls"><option value="0">全クラス</option><option value="1">Elite</option><option value="2">Expert</option><option value="3">Grand Master</option></select>
   <button id="g-btn" onclick="fetchGlobal()">データ取得</button>
@@ -150,7 +150,7 @@
   <div class="table-card"><h3>全ブロック一覧</h3><div class="filter-row"><input type="text" id="g-fG" placeholder="ギルド名 / ワールド番号で検索…" oninput="renderGT()"><select id="g-fS" onchange="renderGT()"><option value="all">全て</option><option value="domination">制覇</option><option value="monopoly">独占</option><option value="oligopoly">寡占</option><option value="contested">分散</option></select></div><div class="table-wrap"><table><thead><tr><th class="srv-col">サーバー</th><th>ワールド</th><th>クラス</th><th>状態</th><th>ブラッセル</th><th>ウィスケルケー</th><th>モダーヴ</th><th>シメイ</th><th>グラベンスティン</th><th>支配ギルド</th></tr></thead><tbody id="g-tB"></tbody></table></div></div>
 </div>
 
-<div class="wf-float hidden" id="wf-float"><div class="wf-label"><span id="wf-name"></span> でフィルタ中</div><button onclick="clearWF()">フィルタ解除</button></div>
+<div class="wf-float hidden" id="wf-float"><div class="wf-label"><span id="wf-name"></span>で<br>フィルタ中</div><button onclick="clearWF()">フィルタ解除</button></div>
 
 <script>
 const MI=[1,2,3,4,5],AI=Array.from({length:21},(_,i)=>i+1);
