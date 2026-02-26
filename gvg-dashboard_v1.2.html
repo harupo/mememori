@@ -265,15 +265,6 @@
     background: #222;
   }
 
-  .guild-color-dot {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    margin-right: 4px;
-    vertical-align: middle;
-  }
-
   .filter-row {
     padding: 0 1.2rem 0.8rem;
     display: flex;
@@ -318,29 +309,10 @@
     width: 50px;
     flex-shrink: 0;
   }
-  .mono-item .castles {
-    display: flex;
-    gap: 3px;
-    flex-shrink: 0;
-  }
-  .mono-item .castle-pip {
-    width: 14px;
-    height: 14px;
-    border-radius: 3px;
-    border: 1px solid rgba(255,255,255,0.1);
-  }
   .mono-item .guild-name {
     flex: 1;
     font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .mono-item .castle-count {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.75rem;
-    color: var(--text-dim);
-    flex-shrink: 0;
+    word-break: break-all;
   }
   .mono-section-header {
     padding: 0.6rem 0.8rem 0.3rem;
@@ -742,33 +714,14 @@ function renderCharts() {
     }
     div.appendChild(tag);
 
-    // 5 castle color pips
-    const castles = document.createElement("span");
-    castles.className = "castles";
-    for (let i = 0; i < 5; i++) {
-      const pip = document.createElement("span");
-      pip.className = "castle-pip";
-      const gname = a.names[i];
-      pip.style.backgroundColor = a.status === "oligopoly"
-        ? getOligopolyColor(gname, a)
-        : getGuildColor(gname);
-      pip.title = `${CASTLE_NAMES[i]}: ${gname}`;
-      castles.appendChild(pip);
-    }
-    div.appendChild(castles);
-
     // Dominant guild
     const name = document.createElement("span");
     name.className = "guild-name";
-    name.textContent = a.dominant;
+    name.textContent = a.status === "monopoly"
+      ? a.dominant
+      : `${a.dominant} (${a.max}/5城)`;
     name.style.color = a.status === "monopoly" ? "var(--monopoly)" : "var(--oligopoly)";
     div.appendChild(name);
-
-    // Count
-    const count = document.createElement("span");
-    count.className = "castle-count";
-    count.textContent = `${a.max}/5城`;
-    div.appendChild(count);
 
     return div;
   }
