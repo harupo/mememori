@@ -56,6 +56,7 @@
   .filter-row input,.filter-row select{font-family:'Noto Sans JP',sans-serif;font-size:.82rem;padding:.3rem .6rem;border-radius:6px;border:1px solid var(--border);background:var(--bg-deep);color:var(--text);}
   .filter-row input{width:260px;}
   .hidden{display:none !important;}
+  .g-hide-srv .srv-col{display:none !important;}
   .mono-item{display:flex;align-items:center;gap:.6rem;padding:.5rem .8rem;border-bottom:1px solid #1e1e2e;font-size:.82rem;min-width:max-content;}
   .mono-item:hover{background:var(--bg-card-hover);}
   .mono-item .world-id{font-family:'JetBrains Mono',monospace;font-weight:600;min-width:50px;flex-shrink:0;}
@@ -143,10 +144,10 @@
     <div class="chart-card" style="overflow:auto;max-height:420px;"><h3>制覇・独占・寡占ブロック</h3><div id="g-side"></div></div>
     <div class="chart-card"><h3>占有分布</h3><div class="chart-container"><canvas id="g-donut"></canvas></div></div>
   </div>
-  <div class="table-card" id="g-domCard"><h3><span style="color:var(--domination);">👑 制覇</span> <span id="g-domC"></span></h3><div class="table-wrap" style="max-height:400px;"><table><thead><tr><th>サーバー</th><th>Group</th><th>所属ワールド</th><th>クラス</th><th>ブロック</th><th>制覇ギルド</th><th>城数</th></tr></thead><tbody id="g-domB"></tbody></table></div></div>
-  <div class="table-card"><h3><span style="color:var(--monopoly);">🔴 独占</span> <span id="g-monoC"></span></h3><div class="table-wrap" style="max-height:400px;"><table><thead><tr><th>サーバー</th><th>Group</th><th>所属ワールド</th><th>クラス</th><th>ブロック</th><th>独占ギルド</th><th>ブラッセル</th><th>ウィスケルケー</th><th>モダーヴ</th><th>シメイ</th><th>グラベンスティン</th></tr></thead><tbody id="g-monoB"></tbody></table></div></div>
-  <div class="table-card"><h3><span style="color:var(--oligopoly);">🟠 寡占</span> <span id="g-oligoC"></span> <span style="font-size:.72rem;font-weight:400;margin-left:1rem;color:var(--text-dim);">凡例: <span style="color:var(--oligo-a);font-weight:700;">■寡占</span> <span style="color:var(--oligo-b);font-weight:700;margin-left:.4rem;">■他B</span> <span style="color:var(--oligo-c);font-weight:700;margin-left:.4rem;">■他C</span></span></h3><div class="table-wrap" style="max-height:400px;"><table><thead><tr><th>サーバー</th><th>Group</th><th>所属ワールド</th><th>クラス</th><th>ブロック</th><th>最多ギルド</th><th>数</th><th>ブラッセル</th><th>ウィスケルケー</th><th>モダーヴ</th><th>シメイ</th><th>グラベンスティン</th></tr></thead><tbody id="g-oligoB"></tbody></table></div></div>
-  <div class="table-card"><h3>全ブロック一覧</h3><div class="filter-row"><input type="text" id="g-fG" placeholder="ギルド名 / ワールド番号で検索…" oninput="renderGT()"><select id="g-fS" onchange="renderGT()"><option value="all">全て</option><option value="domination">制覇</option><option value="monopoly">独占</option><option value="oligopoly">寡占</option><option value="contested">分散</option></select></div><div class="table-wrap"><table><thead><tr><th>サーバー</th><th>Group</th><th>所属ワールド</th><th>クラス</th><th>ブロック</th><th>状態</th><th>ブラッセル</th><th>ウィスケルケー</th><th>モダーヴ</th><th>シメイ</th><th>グラベンスティン</th><th>支配ギルド</th></tr></thead><tbody id="g-tB"></tbody></table></div></div>
+  <div class="table-card" id="g-domCard"><h3><span style="color:var(--domination);">👑 制覇</span> <span id="g-domC"></span></h3><div class="table-wrap" style="max-height:400px;"><table><thead><tr><th class="srv-col">サーバー</th><th>ワールド</th><th>クラス</th><th>制覇ギルド</th><th>城数</th></tr></thead><tbody id="g-domB"></tbody></table></div></div>
+  <div class="table-card"><h3><span style="color:var(--monopoly);">🔴 独占</span> <span id="g-monoC"></span></h3><div class="table-wrap" style="max-height:400px;"><table><thead><tr><th class="srv-col">サーバー</th><th>ワールド</th><th>クラス</th><th>独占ギルド</th><th>ブラッセル</th><th>ウィスケルケー</th><th>モダーヴ</th><th>シメイ</th><th>グラベンスティン</th></tr></thead><tbody id="g-monoB"></tbody></table></div></div>
+  <div class="table-card"><h3><span style="color:var(--oligopoly);">🟠 寡占</span> <span id="g-oligoC"></span> <span style="font-size:.72rem;font-weight:400;margin-left:1rem;color:var(--text-dim);">凡例: <span style="color:var(--oligo-a);font-weight:700;">■寡占</span> <span style="color:var(--oligo-b);font-weight:700;margin-left:.4rem;">■他B</span> <span style="color:var(--oligo-c);font-weight:700;margin-left:.4rem;">■他C</span></span></h3><div class="table-wrap" style="max-height:400px;"><table><thead><tr><th class="srv-col">サーバー</th><th>ワールド</th><th>クラス</th><th>最多ギルド</th><th>数</th><th>ブラッセル</th><th>ウィスケルケー</th><th>モダーヴ</th><th>シメイ</th><th>グラベンスティン</th></tr></thead><tbody id="g-oligoB"></tbody></table></div></div>
+  <div class="table-card"><h3>全ブロック一覧</h3><div class="filter-row"><input type="text" id="g-fG" placeholder="ギルド名 / ワールド番号で検索…" oninput="renderGT()"><select id="g-fS" onchange="renderGT()"><option value="all">全て</option><option value="domination">制覇</option><option value="monopoly">独占</option><option value="oligopoly">寡占</option><option value="contested">分散</option></select></div><div class="table-wrap"><table><thead><tr><th class="srv-col">サーバー</th><th>ワールド</th><th>クラス</th><th>状態</th><th>ブラッセル</th><th>ウィスケルケー</th><th>モダーヴ</th><th>シメイ</th><th>グラベンスティン</th><th>支配ギルド</th></tr></thead><tbody id="g-tB"></tbody></table></div></div>
 </div>
 
 <div class="wf-float hidden" id="wf-float"><div class="wf-label"><span id="wf-name"></span> でフィルタ中</div><button onclick="clearWF()">フィルタ解除</button></div>
@@ -159,8 +160,9 @@ const SN={1:"JP",2:"KR",3:"Asia",4:"NA",5:"EU",6:"Global"};
 const TC={domination:"tag-domination",monopoly:"tag-monopoly",oligopoly:"tag-oligopoly",contested:"tag-contested"};
 const TL={domination:"制覇",monopoly:"独占",oligopoly:"寡占",contested:"分散"};
 const MF="font-family:'JetBrains Mono',monospace;font-weight:600";
-function fmtW(wid){return "w"+parseInt(String(wid).slice(1));}
-function gW(gid){const s=String(gid);return "w"+parseInt(s.slice(-3));}
+function fmtW(wid){return String(parseInt(String(wid).slice(1)));}
+function gW(gid){const s=String(gid);return String(parseInt(s.slice(-3)));}
+const CNA={1:"EL",2:"EX",3:"GM"};
 
 let LD=[],GD=[],lC=null,gC=null,wgCache=null,curTab="local",gWF=null;
 
@@ -213,11 +215,9 @@ function mkDonut(cv,items,ex){
 }
 
 function addGM(tr,it){
-  const t1=document.createElement("td");t1.textContent=it._sn;tr.appendChild(t1);
-  const t2=document.createElement("td");t2.textContent=it._gid;t2.style.cssText=MF;tr.appendChild(t2);
+  const t1=document.createElement("td");t1.textContent=it._sn;t1.className="srv-col";tr.appendChild(t1);
   const t3=document.createElement("td");t3.className="worlds-cell";for(const w of it._wds.split(", ")){const sp=document.createElement("span");sp.className="world-tag"+(gWF===w?" active":"");sp.textContent=w;sp.onclick=(e)=>{e.stopPropagation();setWF(w);};t3.appendChild(sp);}tr.appendChild(t3);
-  const t4=document.createElement("td");t4.textContent=CN[it._cls];tr.appendChild(t4);
-  const t5=document.createElement("td");t5.textContent=BN[it._blk];t5.style.cssText=MF;tr.appendChild(t5);
+  const t4=document.createElement("td");t4.textContent=CNA[it._cls]+"-"+BN[it._blk];t4.style.cssText=MF;tr.appendChild(t4);
 }
 
 function bldDet(items,dB,mB,oB,dC,mC,oC,dCard,isGw){
@@ -333,6 +333,7 @@ async function fetchGlobal(){
   }catch(e){ss(`✗ ${e.message}`,"err");}finally{btn.disabled=false;}}
 
 function renderG(){const fd=gfGD(),s=cntS(fd);
+  const dg=document.getElementById("dash-global");dg.classList.toggle("g-hide-srv",document.getElementById("g-srv").value!=="0");
   document.getElementById("g-total").textContent=s.total;document.getElementById("g-dom").textContent=s.domination;
   document.getElementById("g-mono").textContent=s.monopoly;document.getElementById("g-oligo").textContent=s.oligopoly;
   document.getElementById("g-cont").textContent=s.contested;document.getElementById("g-guilds").textContent=s.guilds.size;
@@ -342,7 +343,7 @@ function renderG(){const fd=gfGD(),s=cntS(fd);
   renderGT();}
 function renderGT(){bldFull(document.getElementById("g-tB"),gfGD(),document.getElementById("g-fG"),document.getElementById("g-fS"),true);}
 
-document.addEventListener("DOMContentLoaded",()=>{fetchLocal();});
+document.addEventListener("DOMContentLoaded",()=>{fetchLocal();fetchGlobal();});
 </script>
 </body>
 </html>
