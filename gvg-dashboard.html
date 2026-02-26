@@ -17,12 +17,7 @@
     --text-dim: #8888a0;
     --text-bright: #ffffff;
     --accent: #6c5ce7;
-    --accent-glow: rgba(108, 92, 231, 0.3);
-    --castle1: #e74c3c;
-    --castle2: #f39c12;
-    --castle3: #2ecc71;
-    --castle4: #3498db;
-    --castle5: #9b59b6;
+    --domination: #ff6b6b;
     --monopoly: #e74c3c;
     --oligopoly: #f39c12;
     --contested: #2ecc71;
@@ -62,160 +57,132 @@
 
   .controls {
     padding: 1rem 2rem;
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-    flex-wrap: wrap;
+    display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;
     border-bottom: 1px solid var(--border);
   }
-  .controls label {
-    font-size: 0.85rem;
-    color: var(--text-dim);
-  }
+  .controls label { font-size: 0.85rem; color: var(--text-dim); }
   .controls select, .controls button {
-    font-family: 'Noto Sans JP', sans-serif;
-    font-size: 0.85rem;
-    padding: 0.4rem 0.8rem;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    background: var(--bg-card);
-    color: var(--text);
-    cursor: pointer;
+    font-family: 'Noto Sans JP', sans-serif; font-size: 0.85rem;
+    padding: 0.4rem 0.8rem; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--bg-card); color: var(--text); cursor: pointer;
   }
   .controls button {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #fff;
-    font-weight: 600;
-    transition: all 0.2s;
+    background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; transition: all 0.2s;
   }
   .controls button:hover { filter: brightness(1.2); }
-  .controls button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
+  .controls button:disabled { opacity: 0.5; cursor: not-allowed; }
 
   .status-bar {
-    padding: 0.6rem 2rem;
-    font-size: 0.8rem;
-    color: var(--text-dim);
+    padding: 0.6rem 2rem; font-size: 0.8rem; color: var(--text-dim);
     font-family: 'JetBrains Mono', monospace;
   }
   .status-bar .ok { color: #2ecc71; }
   .status-bar .err { color: #e74c3c; }
   .status-bar .loading { color: #f39c12; }
 
-  .dashboard {
-    padding: 1.5rem 2rem;
-    display: grid;
-    gap: 1.5rem;
-  }
+  .dashboard { padding: 1.5rem 2rem; display: grid; gap: 1.5rem; }
 
-  /* Summary Cards */
   .summary-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 1rem;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem;
   }
   .stat-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 1.2rem;
-    text-align: center;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.2rem; text-align: center;
   }
-  .stat-card .value {
-    font-size: 2rem;
-    font-weight: 900;
-    font-family: 'JetBrains Mono', monospace;
-  }
+  .stat-card .value { font-size: 2rem; font-weight: 900; font-family: 'JetBrains Mono', monospace; }
   .stat-card .label {
-    font-size: 0.75rem;
-    color: var(--text-dim);
-    margin-top: 0.3rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    font-size: 0.7rem; color: var(--text-dim); margin-top: 0.3rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
   }
+  .stat-card.domination .value { color: var(--domination); }
   .stat-card.monopoly .value { color: var(--monopoly); }
   .stat-card.oligopoly .value { color: var(--oligopoly); }
   .stat-card.contested .value { color: var(--contested); }
 
-  /* Charts */
-  .charts-row {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 1.5rem;
-  }
-  @media (max-width: 900px) {
-    .charts-row { grid-template-columns: 1fr; }
-  }
+  .charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
+  @media (max-width: 900px) { .charts-row { grid-template-columns: 1fr; } }
   .chart-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 1.2rem;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.2rem;
   }
-  .chart-card h3 {
-    font-size: 0.9rem;
-    font-weight: 600;
-    margin-bottom: 1rem;
-    color: var(--text-dim);
-  }
-  .chart-container {
-    position: relative;
-    width: 100%;
-    max-height: 350px;
-  }
+  .chart-card h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-dim); }
+  .chart-container { position: relative; width: 100%; max-height: 350px; }
 
-  /* Table */
   .table-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    overflow: hidden;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; overflow: hidden;
   }
   .table-card h3 {
-    font-size: 0.9rem;
-    font-weight: 600;
-    padding: 1rem 1.2rem;
-    color: var(--text-dim);
-    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem; font-weight: 600; padding: 1rem 1.2rem;
+    color: var(--text-dim); border-bottom: 1px solid var(--border);
   }
-  .table-wrap {
-    overflow-x: auto;
-    max-height: 600px;
-    overflow-y: auto;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.82rem;
-  }
+  .table-wrap { overflow-x: auto; max-height: 600px; overflow-y: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
   thead th {
-    position: sticky;
-    top: 0;
-    background: #1a1a26;
-    padding: 0.6rem 0.8rem;
-    text-align: left;
-    font-weight: 600;
-    color: var(--text-dim);
-    border-bottom: 2px solid var(--border);
-    white-space: nowrap;
-    z-index: 2;
+    position: sticky; top: 0; background: #1a1a26;
+    padding: 0.6rem 0.8rem; text-align: left; font-weight: 600;
+    color: var(--text-dim); border-bottom: 2px solid var(--border);
+    white-space: nowrap; z-index: 2;
   }
-  tbody td {
-    padding: 0.5rem 0.8rem;
-    border-bottom: 1px solid #1e1e2e;
-    white-space: nowrap;
-  }
+  tbody td { padding: 0.5rem 0.8rem; border-bottom: 1px solid #1e1e2e; white-space: nowrap; }
   tbody tr:hover { background: var(--bg-card-hover); }
 
-  .castle-cell {
-    font-weight: 600;
-    font-size: 0.78rem;
+  .castle-cell { font-weight: 600; font-size: 0.78rem; }
+
+  .tag-domination {
+    display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px;
+    font-size: 0.7rem; font-weight: 700; color: #fff;
+    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+  }
+  .tag-monopoly {
+    display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px;
+    font-size: 0.7rem; font-weight: 700; color: #fff; background: var(--monopoly);
+  }
+  .tag-oligopoly {
+    display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px;
+    font-size: 0.7rem; font-weight: 700; color: #fff; background: var(--oligopoly);
+  }
+  .tag-contested {
+    display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px;
+    font-size: 0.7rem; font-weight: 700; color: #fff; background: var(--contested);
   }
 
-  /* スマホ対応 */
+  .filter-row {
+    padding: 0 1.2rem 0.8rem;
+    display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;
+  }
+  .filter-row input, .filter-row select {
+    font-family: 'Noto Sans JP', sans-serif; font-size: 0.82rem;
+    padding: 0.3rem 0.6rem; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--bg-deep); color: var(--text);
+  }
+  .filter-row input { width: 200px; }
+
+  .hidden { display: none !important; }
+
+  .mono-item {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.5rem 0.8rem; border-bottom: 1px solid #1e1e2e; font-size: 0.82rem;
+  }
+  .mono-item:hover { background: var(--bg-card-hover); }
+  .mono-item .world-id {
+    font-family: 'JetBrains Mono', monospace; font-weight: 600; width: 50px; flex-shrink: 0;
+  }
+  .mono-item .guild-name {
+    flex: 1; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .mono-item .castle-count {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+    color: var(--text-dim); flex-shrink: 0;
+  }
+  .mono-section-header {
+    padding: 0.6rem 0.8rem 0.3rem; font-size: 0.75rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim);
+  }
+  .mono-section-header.domination-header { color: var(--domination); }
+  .mono-section-header.monopoly-header { color: var(--monopoly); }
+  .mono-section-header.oligopoly-header { color: var(--oligopoly); }
+
   @media (max-width: 768px) {
     .header { padding: 1.2rem 1rem 0.8rem; }
     .header h1 { font-size: 1.2rem; }
@@ -224,112 +191,18 @@
     .summary-row { grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
     .stat-card { padding: 0.8rem 0.5rem; }
     .stat-card .value { font-size: 1.4rem; }
-    .stat-card .label { font-size: 0.65rem; }
+    .stat-card .label { font-size: 0.6rem; }
     .table-wrap { font-size: 0.75rem; }
     tbody td, thead th { padding: 0.4rem 0.5rem; }
+    .castle-cell { white-space: normal; word-break: break-all; }
   }
-  .tag-monopoly {
-    display: inline-block;
-    padding: 0.15rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: #fff;
-    background: var(--monopoly);
-  }
-  .tag-oligopoly {
-    display: inline-block;
-    padding: 0.15rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: #fff;
-    background: var(--oligopoly);
-  }
-  .tag-contested {
-    display: inline-block;
-    padding: 0.15rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: #fff;
-    background: var(--contested);
-  }
-  .tag-no-data {
-    display: inline-block;
-    padding: 0.15rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.7rem;
-    color: var(--text-dim);
-    background: #222;
-  }
-
-  .filter-row {
-    padding: 0 1.2rem 0.8rem;
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-    flex-wrap: wrap;
-  }
-  .filter-row input {
-    font-family: 'Noto Sans JP', sans-serif;
-    font-size: 0.82rem;
-    padding: 0.3rem 0.6rem;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    background: var(--bg-deep);
-    color: var(--text);
-    width: 200px;
-  }
-  .filter-row select {
-    font-family: 'Noto Sans JP', sans-serif;
-    font-size: 0.82rem;
-    padding: 0.3rem 0.6rem;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    background: var(--bg-deep);
-    color: var(--text);
-  }
-
-  .hidden { display: none !important; }
-
-  .mono-item {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 0.5rem 0.8rem;
-    border-bottom: 1px solid #1e1e2e;
-    font-size: 0.82rem;
-  }
-  .mono-item:hover { background: var(--bg-card-hover); }
-  .mono-item .world-id {
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 600;
-    width: 50px;
-    flex-shrink: 0;
-  }
-  .mono-item .guild-name {
-    flex: 1;
-    font-weight: 600;
-    word-break: break-all;
-  }
-  .mono-section-header {
-    padding: 0.6rem 0.8rem 0.3rem;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text-dim);
-  }
-  .mono-section-header.monopoly-header { color: var(--monopoly); }
-  .mono-section-header.oligopoly-header { color: var(--oligopoly); }
 </style>
 </head>
 <body>
 
 <div class="header">
   <h1>⚔️ メメントモリ ギルドバトル 拠点占有ダッシュボード</h1>
-  <div class="sub">全ワールドの城保有状況と独占・寡占分析</div>
+  <div class="sub">全ワールドの城保有状況と制覇・独占・寡占分析</div>
 </div>
 
 <div class="controls">
@@ -349,11 +222,14 @@
 <div class="status-bar" id="statusBar">待機中…</div>
 
 <div class="dashboard hidden" id="dashboard">
-  <!-- Summary -->
   <div class="summary-row">
     <div class="stat-card">
       <div class="value" id="totalWorlds">-</div>
       <div class="label">ワールド数</div>
+    </div>
+    <div class="stat-card domination">
+      <div class="value" id="dominationCount">-</div>
+      <div class="label">制覇 (21城同一)</div>
     </div>
     <div class="stat-card monopoly">
       <div class="value" id="monopolyCount">-</div>
@@ -373,10 +249,9 @@
     </div>
   </div>
 
-  <!-- Charts -->
   <div class="charts-row">
     <div class="chart-card" style="overflow-y:auto; max-height:420px;">
-      <h3>独占・寡占ワールド一覧</h3>
+      <h3>制覇・独占・寡占ワールド一覧</h3>
       <div id="monopolyList"></div>
     </div>
     <div class="chart-card">
@@ -387,6 +262,17 @@
     </div>
   </div>
 
+  <!-- 制覇テーブル -->
+  <div class="table-card" id="dominationTableCard">
+    <h3><span style="color:var(--domination);">👑 制覇しているワールド一覧</span> <span id="dominationTableCount" style="font-weight:400;"></span></h3>
+    <div class="table-wrap" style="max-height:400px;">
+      <table>
+        <thead><tr><th>World</th><th>制覇ギルド</th><th>保有城数</th></tr></thead>
+        <tbody id="dominationTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- 独占テーブル -->
   <div class="table-card" id="monopolyTableCard">
     <h3><span style="color:var(--monopoly);">🔴 独占が発生しているワールド一覧</span> <span id="monopolyTableCount" style="font-weight:400;"></span></h3>
@@ -394,13 +280,8 @@
       <table>
         <thead>
           <tr>
-            <th>World</th>
-            <th>独占ギルド</th>
-            <th>ブラッセル</th>
-            <th>ウィスケルケー</th>
-            <th>モダーヴ</th>
-            <th>シメイ</th>
-            <th>グラベンスティン</th>
+            <th>World</th><th>独占ギルド</th>
+            <th>ブラッセル</th><th>ウィスケルケー</th><th>モダーヴ</th><th>シメイ</th><th>グラベンスティン</th>
           </tr>
         </thead>
         <tbody id="monopolyTableBody"></tbody>
@@ -424,14 +305,8 @@
       <table>
         <thead>
           <tr>
-            <th>World</th>
-            <th>最多ギルド</th>
-            <th>保有数</th>
-            <th>ブラッセル</th>
-            <th>ウィスケルケー</th>
-            <th>モダーヴ</th>
-            <th>シメイ</th>
-            <th>グラベンスティン</th>
+            <th>World</th><th>最多ギルド</th><th>保有数</th>
+            <th>ブラッセル</th><th>ウィスケルケー</th><th>モダーヴ</th><th>シメイ</th><th>グラベンスティン</th>
           </tr>
         </thead>
         <tbody id="oligopolyTableBody"></tbody>
@@ -439,13 +314,14 @@
     </div>
   </div>
 
-  <!-- Table -->
+  <!-- 全ワールド一覧 -->
   <div class="table-card">
     <h3>全ワールド 城保有一覧</h3>
     <div class="filter-row">
       <input type="text" id="filterGuild" placeholder="ギルド名で検索…" oninput="applyFilters()">
       <select id="filterStatus" onchange="applyFilters()">
         <option value="all">全て</option>
+        <option value="domination">制覇のみ</option>
         <option value="monopoly">独占のみ</option>
         <option value="oligopoly">寡占のみ</option>
         <option value="contested">分散のみ</option>
@@ -455,14 +331,9 @@
       <table>
         <thead>
           <tr>
-            <th>World</th>
-            <th>状態</th>
-            <th>ブラッセル</th>
-            <th>ウィスケルケー</th>
-            <th>モダーヴ</th>
-            <th>シメイ</th>
-            <th>グラベンスティン</th>
-            <th>独占ギルド</th>
+            <th>World</th><th>状態</th>
+            <th>ブラッセル</th><th>ウィスケルケー</th><th>モダーヴ</th><th>シメイ</th><th>グラベンスティン</th>
+            <th>支配ギルド</th>
           </tr>
         </thead>
         <tbody id="tableBody"></tbody>
@@ -473,68 +344,34 @@
 
 <script>
 const CASTLE_NAMES = ["ブラッセル", "ウィスケルケー", "モダーヴ", "シメイ", "グラベンスティン"];
-const CASTLE_IDS = [1, 2, 3, 4, 5];
-const CASTLE_COLORS = ["#e74c3c", "#f39c12", "#2ecc71", "#3498db", "#9b59b6"];
+const MAIN_CASTLE_IDS = [1, 2, 3, 4, 5];
+const ALL_CASTLE_IDS = Array.from({length: 21}, (_, i) => i + 1);
 
 let allWorldData = [];
-let guildColorMap = {};
-let colorIndex = 0;
-const PALETTE = [
-  "#e74c3c","#3498db","#2ecc71","#f39c12","#9b59b6",
-  "#1abc9c","#e67e22","#e84393","#00cec9","#fdcb6e",
-  "#6c5ce7","#ff7675","#74b9ff","#55efc4","#ffeaa7",
-  "#a29bfe","#fab1a0","#81ecec","#dfe6e9","#fd79a8",
-  "#636e72","#b2bec3","#d63031","#0984e3","#00b894",
-];
-
 let distributionChart = null;
 
-function getGuildColor(guildName) {
-  if (!guildName || guildName === "NPC") return "#444";
-  if (!guildColorMap[guildName]) {
-    guildColorMap[guildName] = PALETTE[colorIndex % PALETTE.length];
-    colorIndex++;
-  }
-  return guildColorMap[guildName];
-}
-
-/**
- * 寡占ワールド用の固定カラーを返す
- * dominant(最多ギルド) → A色(橙), それ以外 → B色, C色 の順に割当
- */
 function getOligopolyColor(guildName, analysis) {
   if (!guildName || guildName === "NPC") return "#444";
   if (guildName === analysis.dominant) return "var(--oligo-a)";
-  // dominant以外のギルド名を列挙（出現順）
   const others = [];
-  for (const n of analysis.names) {
-    if (n !== analysis.dominant && n !== "NPC" && !others.includes(n)) {
-      others.push(n);
-    }
+  for (const n of analysis.mainNames) {
+    if (n !== analysis.dominant && n !== "NPC" && !others.includes(n)) others.push(n);
   }
-  const idx = others.indexOf(guildName);
-  if (idx === 0) return "var(--oligo-b)";
-  return "var(--oligo-c)";
+  return others.indexOf(guildName) === 0 ? "var(--oligo-b)" : "var(--oligo-c)";
 }
 
 function setStatus(text, type = "") {
-  const el = document.getElementById("statusBar");
-  el.innerHTML = `<span class="${type}">${text}</span>`;
+  document.getElementById("statusBar").innerHTML = `<span class="${type}">${text}</span>`;
 }
 
 async function fetchData() {
   const server = document.getElementById("serverSelect").value;
   const btn = document.getElementById("fetchBtn");
   btn.disabled = true;
-
-  guildColorMap = {};
-  colorIndex = 0;
   allWorldData = [];
-
   setStatus("ワールド一覧を取得中…", "loading");
 
   try {
-    // 1. /worlds からサーバーに該当するワールド一覧を取得
     const worldsResp = await fetch("https://api.mentemori.icu/worlds");
     const worldsJson = await worldsResp.json();
     if (worldsJson.status !== 200) throw new Error("ワールド一覧の取得に失敗");
@@ -543,13 +380,10 @@ async function fetchData() {
       .filter(w => w.localgvg && String(w.world_id).startsWith(server))
       .map(w => w.world_id);
 
-    if (targetWorlds.length === 0) {
-      throw new Error("対象ワールドが見つかりません");
-    }
+    if (targetWorlds.length === 0) throw new Error("対象ワールドが見つかりません");
 
     setStatus(`${targetWorlds.length} ワールドのGvGデータを取得中… (0/${targetWorlds.length})`, "loading");
 
-    // 2. 並列取得（同時最大10リクエスト）
     const CONCURRENCY = 10;
     let completed = 0;
     let lastTimestamp = 0;
@@ -562,52 +396,33 @@ async function fetchData() {
           const world = json.data;
           const guilds = world.guilds || {};
           const castleOwners = {};
-
           for (const c of world.castles) {
-            if (CASTLE_IDS.includes(c.CastleId)) {
-              const gid = c.GuildId;
-              const gname = gid ? (guilds[String(gid)] || `ID:${gid}`) : "NPC";
-              castleOwners[c.CastleId] = { guildId: gid, guildName: gname };
-            }
+            const gid = c.GuildId;
+            const gname = gid ? (guilds[String(gid)] || `ID:${gid}`) : "NPC";
+            castleOwners[c.CastleId] = { guildId: gid, guildName: gname };
           }
-
           allWorldData.push({ worldId: wid, castleOwners, guilds });
           if (json.timestamp > lastTimestamp) lastTimestamp = json.timestamp;
         }
-      } catch (e) {
-        console.warn(`World ${wid} fetch failed:`, e.message);
-      }
+      } catch (e) { console.warn(`World ${wid} failed:`, e.message); }
       completed++;
-      setStatus(
-        `${targetWorlds.length} ワールドのGvGデータを取得中… (${completed}/${targetWorlds.length})`,
-        "loading"
-      );
+      setStatus(`${targetWorlds.length} ワールドのGvGデータを取得中… (${completed}/${targetWorlds.length})`, "loading");
     }
 
-    // 同時実行数を制限しながら並列取得
     const queue = [...targetWorlds];
     const workers = [];
     for (let i = 0; i < CONCURRENCY; i++) {
-      workers.push((async () => {
-        while (queue.length > 0) {
-          const wid = queue.shift();
-          if (wid !== undefined) await fetchWorld(wid);
-        }
-      })());
+      workers.push((async () => { while (queue.length > 0) { const w = queue.shift(); if (w !== undefined) await fetchWorld(w); } })());
     }
     await Promise.all(workers);
-
     allWorldData.sort((a, b) => a.worldId - b.worldId);
 
     if (lastTimestamp > 0) {
-      const ts = new Date(lastTimestamp * 1000);
-      document.getElementById("timestamp").textContent =
-        `データ時刻: ${ts.toLocaleString("ja-JP")}`;
+      document.getElementById("timestamp").textContent = `データ時刻: ${new Date(lastTimestamp * 1000).toLocaleString("ja-JP")}`;
     }
 
     setStatus(`✓ ${allWorldData.length} / ${targetWorlds.length} ワールド取得完了`, "ok");
     document.getElementById("dashboard").classList.remove("hidden");
-
     renderAll();
   } catch (e) {
     setStatus(`✗ エラー: ${e.message}`, "err");
@@ -619,341 +434,290 @@ async function fetchData() {
 
 function analyzeWorld(w) {
   const owners = w.castleOwners;
-  const names = CASTLE_IDS.map(id => owners[id]?.guildName || "NPC");
-  const counts = {};
-  for (const n of names) {
-    counts[n] = (counts[n] || 0) + 1;
+
+  // 主要5城
+  const mainNames = MAIN_CASTLE_IDS.map(id => owners[id]?.guildName || "NPC");
+  const mainCounts = {};
+  for (const n of mainNames) mainCounts[n] = (mainCounts[n] || 0) + 1;
+  const mainMax = Math.max(...Object.values(mainCounts));
+  const dominant = Object.keys(mainCounts).find(k => mainCounts[k] === mainMax);
+
+  // 全21城
+  const allCounts = {};
+  let allTotal = 0;
+  for (const id of ALL_CASTLE_IDS) {
+    const n = owners[id]?.guildName || "NPC";
+    if (n !== "NPC") {
+      allCounts[n] = (allCounts[n] || 0) + 1;
+      allTotal++;
+    }
   }
-  const max = Math.max(...Object.values(counts));
-  const dominant = Object.keys(counts).find(k => counts[k] === max);
+  const allMax = Math.max(0, ...Object.values(allCounts));
+  const allDominant = Object.keys(allCounts).find(k => allCounts[k] === allMax) || "NPC";
 
   let status;
-  if (max === 5) status = "monopoly";
-  else if (max >= 3) status = "oligopoly";
+  if (allMax === 21) status = "domination";
+  else if (mainMax === 5) status = "monopoly";
+  else if (mainMax >= 3) status = "oligopoly";
   else status = "contested";
 
-  return { names, counts, max, dominant, status };
+  return { mainNames, mainCounts, mainMax, dominant, allCounts, allMax, allDominant, allTotal, status };
 }
 
 function renderAll() {
   renderSummary();
-  renderCharts();
+  renderSideList();
+  renderDoughnut();
   renderDetailTables();
   renderTable();
 }
 
 function renderSummary() {
-  let monopoly = 0, oligopoly = 0, contested = 0;
-  const allGuilds = new Set();
-
-  for (const w of allWorldData) {
-    const a = analyzeWorld(w);
-    if (a.status === "monopoly") monopoly++;
-    else if (a.status === "oligopoly") oligopoly++;
-    else contested++;
-
-    for (const id of CASTLE_IDS) {
-      const g = w.castleOwners[id]?.guildName;
-      if (g && g !== "NPC") allGuilds.add(`${w.worldId}:${g}`);
-    }
-  }
-
-  // ユニークギルド名（ワールド跨ぎの同名は別カウント）
+  let dom = 0, mono = 0, oligo = 0, cont = 0;
   const uniqueGuilds = new Set();
   for (const w of allWorldData) {
-    for (const id of CASTLE_IDS) {
+    const a = analyzeWorld(w);
+    if (a.status === "domination") dom++;
+    else if (a.status === "monopoly") mono++;
+    else if (a.status === "oligopoly") oligo++;
+    else cont++;
+    for (const id of MAIN_CASTLE_IDS) {
       const g = w.castleOwners[id]?.guildName;
       if (g && g !== "NPC") uniqueGuilds.add(g);
     }
   }
-
   document.getElementById("totalWorlds").textContent = allWorldData.length;
-  document.getElementById("monopolyCount").textContent = monopoly;
-  document.getElementById("oligopolyCount").textContent = oligopoly;
-  document.getElementById("contestedCount").textContent = contested;
+  document.getElementById("dominationCount").textContent = dom;
+  document.getElementById("monopolyCount").textContent = mono;
+  document.getElementById("oligopolyCount").textContent = oligo;
+  document.getElementById("contestedCount").textContent = cont;
   document.getElementById("totalGuilds").textContent = uniqueGuilds.size;
 }
 
-function renderCharts() {
-  // 独占・寡占ワールド一覧
+function renderSideList() {
   const listEl = document.getElementById("monopolyList");
   listEl.innerHTML = "";
-
-  const monopolyWorlds = [];
-  const oligopolyWorlds = [];
-
+  const groups = { domination: [], monopoly: [], oligopoly: [] };
   for (const w of allWorldData) {
     const a = analyzeWorld(w);
-    if (a.status === "monopoly") {
-      monopolyWorlds.push({ world: w, analysis: a });
-    } else if (a.status === "oligopoly") {
-      oligopolyWorlds.push({ world: w, analysis: a });
-    }
+    if (groups[a.status]) groups[a.status].push({ world: w, analysis: a });
   }
 
-  function buildItem(entry) {
+  function buildItem(entry, sType) {
     const { world: w, analysis: a } = entry;
     const div = document.createElement("div");
     div.className = "mono-item";
-
-    // World ID
     const wid = document.createElement("span");
     wid.className = "world-id";
     wid.textContent = w.worldId;
     div.appendChild(wid);
-
-    // Tag
     const tag = document.createElement("span");
-    if (a.status === "monopoly") {
-      tag.className = "tag-monopoly";
-      tag.textContent = "独占";
-    } else {
-      tag.className = "tag-oligopoly";
-      tag.textContent = "寡占";
-    }
+    tag.className = sType === "domination" ? "tag-domination" : sType === "monopoly" ? "tag-monopoly" : "tag-oligopoly";
+    tag.textContent = sType === "domination" ? "制覇" : sType === "monopoly" ? "独占" : "寡占";
     div.appendChild(tag);
-
-    // Dominant guild
     const name = document.createElement("span");
     name.className = "guild-name";
-    name.textContent = a.status === "monopoly"
-      ? a.dominant
-      : `${a.dominant} (${a.max}/5城)`;
-    name.style.color = a.status === "monopoly" ? "var(--monopoly)" : "var(--oligopoly)";
+    name.textContent = sType === "domination" ? a.allDominant : a.dominant;
+    name.style.color = sType === "domination" ? "var(--domination)" : sType === "monopoly" ? "var(--monopoly)" : "var(--oligopoly)";
     div.appendChild(name);
-
+    const count = document.createElement("span");
+    count.className = "castle-count";
+    count.textContent = sType === "domination" ? "21/21" : sType === "monopoly" ? "5/5" : `${a.mainMax}/5`;
+    div.appendChild(count);
     return div;
   }
 
-  if (monopolyWorlds.length > 0) {
-    const header = document.createElement("div");
-    header.className = "mono-section-header monopoly-header";
-    header.textContent = `独占 — ${monopolyWorlds.length}ワールド`;
-    listEl.appendChild(header);
-    for (const entry of monopolyWorlds) {
-      listEl.appendChild(buildItem(entry));
-    }
+  function addSection(items, label, cssClass, sType) {
+    if (items.length === 0) return;
+    const h = document.createElement("div");
+    h.className = `mono-section-header ${cssClass}`;
+    h.textContent = `${label} — ${items.length}ワールド`;
+    listEl.appendChild(h);
+    for (const e of items) listEl.appendChild(buildItem(e, sType));
   }
 
-  if (oligopolyWorlds.length > 0) {
-    const header = document.createElement("div");
-    header.className = "mono-section-header oligopoly-header";
-    header.textContent = `寡占 — ${oligopolyWorlds.length}ワールド`;
-    listEl.appendChild(header);
-    for (const entry of oligopolyWorlds) {
-      listEl.appendChild(buildItem(entry));
-    }
-  }
+  addSection(groups.domination, "制覇", "domination-header", "domination");
+  addSection(groups.monopoly, "独占", "monopoly-header", "monopoly");
+  addSection(groups.oligopoly, "寡占", "oligopoly-header", "oligopoly");
 
-  if (monopolyWorlds.length === 0 && oligopolyWorlds.length === 0) {
-    listEl.innerHTML = '<div style="padding:1rem;color:var(--text-dim);">独占・寡占のワールドはありません</div>';
+  if (groups.domination.length + groups.monopoly.length + groups.oligopoly.length === 0) {
+    listEl.innerHTML = '<div style="padding:1rem;color:var(--text-dim);">該当なし</div>';
   }
+}
 
-  // Distribution doughnut (keep as-is)
-  let monopoly = 0, oligopoly = 0, contested = 0;
+function renderDoughnut() {
+  let dom = 0, mono = 0, oligo = 0, cont = 0;
   for (const w of allWorldData) {
     const a = analyzeWorld(w);
-    if (a.status === "monopoly") monopoly++;
-    else if (a.status === "oligopoly") oligopoly++;
-    else contested++;
+    if (a.status === "domination") dom++;
+    else if (a.status === "monopoly") mono++;
+    else if (a.status === "oligopoly") oligo++;
+    else cont++;
   }
-
-  const ctx2 = document.getElementById("distributionChart").getContext("2d");
+  const ctx = document.getElementById("distributionChart").getContext("2d");
   if (distributionChart) distributionChart.destroy();
-  distributionChart = new Chart(ctx2, {
+  distributionChart = new Chart(ctx, {
     type: "doughnut",
     data: {
-      labels: ["独占 (5城)", "寡占 (3-4城)", "分散 (1-2城)"],
+      labels: ["制覇 (21城)", "独占 (5城)", "寡占 (3-4城)", "分散 (1-2城)"],
       datasets: [{
-        data: [monopoly, oligopoly, contested],
-        backgroundColor: ["#e74c3c", "#f39c12", "#2ecc71"],
+        data: [dom, mono, oligo, cont],
+        backgroundColor: ["#ff6b6b", "#e74c3c", "#f39c12", "#2ecc71"],
         borderWidth: 0,
       }]
     },
     options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: "bottom",
-          labels: { color: "#e0e0ec", padding: 12, font: { size: 12 } }
-        }
-      }
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: "bottom", labels: { color: "#e0e0ec", padding: 12, font: { size: 11 } } } }
     }
   });
 }
 
 function renderDetailTables() {
-  // 独占テーブル
+  // 制覇
+  const domBody = document.getElementById("dominationTableBody");
+  domBody.innerHTML = "";
+  let domCount = 0;
+  for (const w of allWorldData) {
+    const a = analyzeWorld(w);
+    if (a.status !== "domination") continue;
+    domCount++;
+    const tr = document.createElement("tr");
+    const tdW = document.createElement("td");
+    tdW.textContent = w.worldId;
+    tdW.style.cssText = "font-family:'JetBrains Mono',monospace;font-weight:600";
+    tr.appendChild(tdW);
+    const tdG = document.createElement("td");
+    tdG.textContent = a.allDominant;
+    tdG.style.cssText = "font-weight:700;color:var(--domination)";
+    tr.appendChild(tdG);
+    const tdC = document.createElement("td");
+    tdC.textContent = "21/21";
+    tdC.style.cssText = "font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--domination)";
+    tr.appendChild(tdC);
+    domBody.appendChild(tr);
+  }
+  document.getElementById("dominationTableCount").textContent = `(${domCount}ワールド)`;
+  document.getElementById("dominationTableCard").style.display = domCount === 0 ? "none" : "";
+
+  // 独占
   const monoBody = document.getElementById("monopolyTableBody");
   monoBody.innerHTML = "";
   let monoCount = 0;
-
   for (const w of allWorldData) {
     const a = analyzeWorld(w);
     if (a.status !== "monopoly") continue;
     monoCount++;
-
     const tr = document.createElement("tr");
-
-    // World
     const tdW = document.createElement("td");
     tdW.textContent = w.worldId;
-    tdW.style.fontFamily = "'JetBrains Mono', monospace";
-    tdW.style.fontWeight = "600";
+    tdW.style.cssText = "font-family:'JetBrains Mono',monospace;font-weight:600";
     tr.appendChild(tdW);
-
-    // 独占ギルド
     const tdG = document.createElement("td");
     tdG.textContent = a.dominant;
-    tdG.style.fontWeight = "700";
-    tdG.style.color = "var(--monopoly)";
+    tdG.style.cssText = "font-weight:700;color:var(--monopoly)";
     tr.appendChild(tdG);
-
-    // 城5列
     for (let i = 0; i < 5; i++) {
       const td = document.createElement("td");
       td.className = "castle-cell";
-      const name = a.names[i];
-      td.textContent = name;
+      td.textContent = a.mainNames[i];
       td.style.color = "var(--monopoly)";
       tr.appendChild(td);
     }
-
     monoBody.appendChild(tr);
   }
-
   document.getElementById("monopolyTableCount").textContent = `(${monoCount}ワールド)`;
 
-  // 寡占テーブル
+  // 寡占
   const oligoBody = document.getElementById("oligopolyTableBody");
   oligoBody.innerHTML = "";
   let oligoCount = 0;
-
   for (const w of allWorldData) {
     const a = analyzeWorld(w);
     if (a.status !== "oligopoly") continue;
     oligoCount++;
-
     const tr = document.createElement("tr");
-
-    // World
     const tdW = document.createElement("td");
     tdW.textContent = w.worldId;
-    tdW.style.fontFamily = "'JetBrains Mono', monospace";
-    tdW.style.fontWeight = "600";
+    tdW.style.cssText = "font-family:'JetBrains Mono',monospace;font-weight:600";
     tr.appendChild(tdW);
-
-    // 最多ギルド
     const tdG = document.createElement("td");
     tdG.textContent = a.dominant;
-    tdG.style.fontWeight = "700";
-    tdG.style.color = "var(--oligopoly)";
+    tdG.style.cssText = "font-weight:700;color:var(--oligopoly)";
     tr.appendChild(tdG);
-
-    // 保有数
     const tdC = document.createElement("td");
-    tdC.textContent = `${a.max}/5`;
-    tdC.style.fontFamily = "'JetBrains Mono', monospace";
-    tdC.style.fontWeight = "600";
+    tdC.textContent = `${a.mainMax}/5`;
+    tdC.style.cssText = "font-family:'JetBrains Mono',monospace;font-weight:600";
     tr.appendChild(tdC);
-
-    // 城5列
     for (let i = 0; i < 5; i++) {
       const td = document.createElement("td");
       td.className = "castle-cell";
-      const name = a.names[i];
-      td.textContent = name;
-      td.style.color = getOligopolyColor(name, a);
+      td.textContent = a.mainNames[i];
+      td.style.color = getOligopolyColor(a.mainNames[i], a);
       tr.appendChild(td);
     }
-
     oligoBody.appendChild(tr);
   }
-
   document.getElementById("oligopolyTableCount").textContent = `(${oligoCount}ワールド)`;
 }
 
 function renderTable() {
   const tbody = document.getElementById("tableBody");
   tbody.innerHTML = "";
-
   const filterGuild = document.getElementById("filterGuild").value.toLowerCase();
   const filterStatus = document.getElementById("filterStatus").value;
 
   for (const w of allWorldData) {
     const a = analyzeWorld(w);
-
-    // フィルター
     if (filterStatus !== "all" && a.status !== filterStatus) continue;
-    if (filterGuild) {
-      const match = a.names.some(n => n.toLowerCase().includes(filterGuild));
-      if (!match) continue;
-    }
+    if (filterGuild && !a.mainNames.some(n => n.toLowerCase().includes(filterGuild))) continue;
 
     const tr = document.createElement("tr");
 
-    // World ID
     const tdWorld = document.createElement("td");
     tdWorld.textContent = w.worldId;
-    tdWorld.style.fontFamily = "'JetBrains Mono', monospace";
-    tdWorld.style.fontWeight = "600";
+    tdWorld.style.cssText = "font-family:'JetBrains Mono',monospace;font-weight:600";
     tr.appendChild(tdWorld);
 
-    // Status tag
     const tdStatus = document.createElement("td");
-    if (a.status === "monopoly") {
-      tdStatus.innerHTML = '<span class="tag-monopoly">独占</span>';
-    } else if (a.status === "oligopoly") {
-      tdStatus.innerHTML = '<span class="tag-oligopoly">寡占</span>';
-    } else {
-      tdStatus.innerHTML = '<span class="tag-contested">分散</span>';
-    }
+    const tagClass = { domination: "tag-domination", monopoly: "tag-monopoly", oligopoly: "tag-oligopoly", contested: "tag-contested" };
+    const tagLabel = { domination: "制覇", monopoly: "独占", oligopoly: "寡占", contested: "分散" };
+    tdStatus.innerHTML = `<span class="${tagClass[a.status]}">${tagLabel[a.status]}</span>`;
     tr.appendChild(tdStatus);
 
-    // Castle cells
     for (let i = 0; i < 5; i++) {
       const td = document.createElement("td");
       td.className = "castle-cell";
-      const name = a.names[i];
+      const name = a.mainNames[i];
       td.textContent = name;
-      if (a.status === "monopoly") {
-        td.style.color = "var(--monopoly)";
-      } else if (a.status === "oligopoly") {
-        td.style.color = getOligopolyColor(name, a);
-      } else {
-        td.style.color = "var(--text)";
-      }
+      if (a.status === "domination") td.style.color = "var(--domination)";
+      else if (a.status === "monopoly") td.style.color = "var(--monopoly)";
+      else if (a.status === "oligopoly") td.style.color = getOligopolyColor(name, a);
+      else td.style.color = "var(--text)";
       tr.appendChild(td);
     }
 
-    // Dominant guild
-    const tdDominant = document.createElement("td");
-    if (a.status === "monopoly") {
-      tdDominant.textContent = a.dominant;
-      tdDominant.style.fontWeight = "700";
-      tdDominant.style.color = "#e74c3c";
+    const tdDom = document.createElement("td");
+    if (a.status === "domination") {
+      tdDom.textContent = `${a.allDominant} (21城制覇)`;
+      tdDom.style.cssText = "font-weight:700;color:var(--domination)";
+    } else if (a.status === "monopoly") {
+      tdDom.textContent = a.dominant;
+      tdDom.style.cssText = "font-weight:700;color:var(--monopoly)";
     } else if (a.status === "oligopoly") {
-      tdDominant.textContent = `${a.dominant} (${a.max}城)`;
-      tdDominant.style.color = "#f39c12";
+      tdDom.textContent = `${a.dominant} (${a.mainMax}城)`;
+      tdDom.style.color = "var(--oligopoly)";
     } else {
-      tdDominant.textContent = "-";
-      tdDominant.style.color = "var(--text-dim)";
+      tdDom.textContent = "-";
+      tdDom.style.color = "var(--text-dim)";
     }
-    tr.appendChild(tdDominant);
-
+    tr.appendChild(tdDom);
     tbody.appendChild(tr);
   }
 }
 
-function applyFilters() {
-  renderTable();
-}
-
-// 初期ロード
-document.addEventListener("DOMContentLoaded", () => {
-  fetchData();
-});
+function applyFilters() { renderTable(); }
+document.addEventListener("DOMContentLoaded", () => { fetchData(); });
 </script>
 </body>
 </html>
