@@ -97,7 +97,6 @@
 <div class="controls" id="ctrl-local">
   <label>サーバー:</label>
   <select id="l-srv"><option value="1">JP</option><option value="2">KR</option><option value="3">Asia</option><option value="4">NA</option><option value="5">EU</option><option value="6">Global</option></select>
-  <button id="l-btn" onclick="fetchLocal()">データ取得</button>
   <span id="l-ts" style="font-size:.8rem;color:var(--text-dim);margin-left:auto;"></span>
 </div>
 <div class="controls hidden" id="ctrl-global">
@@ -105,8 +104,12 @@
   <select id="g-srv"><option value="0">全サーバー</option><option value="1" selected>JP</option><option value="2">KR</option><option value="3">Asia</option><option value="4">NA</option><option value="5">EU</option><option value="6">Global</option></select>
   <label>クラス:</label>
   <select id="g-cls"><option value="0">全クラス</option><option value="1">Elite</option><option value="2">Expert</option><option value="3">Grand Master</option></select>
-  <button id="g-btn" onclick="fetchGlobal()">データ取得</button>
   <span id="g-ts" style="font-size:.8rem;color:var(--text-dim);margin-left:auto;"></span>
+</div>
+<div class="controls" style="border-bottom:1px solid var(--border);">
+  <label>⏰ 自動更新:</label>
+  <input type="time" id="schedTime" value="22:00" style="font-family:'JetBrains Mono',monospace;font-size:.85rem;padding:.3rem .6rem;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);">
+  <span id="schedNext" style="font-size:.8rem;color:var(--text-dim);"></span>
 </div>
 <div class="status-bar" id="statusBar">待機中…</div>
 
@@ -165,10 +168,26 @@ function gW(gid){const s=String(gid);return String(parseInt(s.slice(-3)));}
 const CNA={1:"EL",2:"EX",3:"GM"};
 
 let LD=[],GD=[],lC=null,gC=null,wgCache=null,curTab="local",gWF=null;
+const fetchLock={local:false,global:false};
+let schedTimer=null;
 
 function setWF(w){gWF=w;document.getElementById("wf-name").textContent=w;document.getElementById("wf-float").classList.remove("hidden");renderG();}
 function clearWF(){gWF=null;document.getElementById("wf-float").classList.add("hidden");renderG();}
 function gfGD(){return gWF?GD.filter(it=>it._wds.split(", ").includes(gWF)):GD;}
+
+async function fetchAll(){await fetchLocal();await fetchGlobal();}
+
+function schedNext(){
+  const el=document.getElementById("schedNext"),tv=document.getElementById("schedTime").value;
+  if(!tv){el.textContent="";return;}
+  const [h,m]=tv.split(":").map(Number),now=new Date();
+  const next=new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,m,0,0);
+  if(next<=now)next.setDate(next.getDate()+1);
+  el.textContent=`次回: ${next.toLocaleString("ja-JP",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"})}`;
+  if(schedTimer)clearTimeout(schedTimer);
+  const ms=next.getTime()-Date.now();
+  schedTimer=setTimeout(()=>{fetchAll().then(schedNext);},ms);
+}
 
 function ss(t,c=""){document.getElementById("statusBar").innerHTML=`<span class="${c}">${t}</span>`;}
 function oc(n,a){if(!n||n==="NPC")return"#444";if(n===a.dominant)return"var(--oligo-a)";const o=[];for(const x of a.mn){if(x!==a.dominant&&x!=="NPC"&&!o.includes(x))o.push(x);}return o.indexOf(n)===0?"var(--oligo-b)":"var(--oligo-c)";}
@@ -273,8 +292,8 @@ function switchTab(tab){curTab=tab;
 
 // ギルドバトル
 async function fetchLocal(){
-  const srv=document.getElementById("l-srv").value,btn=document.getElementById("l-btn");
-  btn.disabled=true;LD=[];ss("ワールド一覧を取得中…","loading");
+  const srv=document.getElementById("l-srv").value;
+  if(fetchLock.local)return;fetchLock.local=true;LD=[];ss("ワールド一覧を取得中…","loading");
   try{const MSG="APIサーバーがメンテナンス中です。しばらく待ってから再取得してください";let wr_res;try{wr_res=await fetch("https://api.mentemori.icu/worlds");}catch(e){throw new Error(MSG);}if(!wr_res.ok)throw new Error(MSG);const wr=await wr_res.json();
     if(wr.status!==200)throw new Error(MSG);
     const tg=wr.data.filter(w=>w.localgvg&&String(w.world_id).startsWith(srv)).map(w=>w.world_id);
@@ -290,7 +309,7 @@ async function fetchLocal(){
     if(lt>0)document.getElementById("l-ts").textContent=`データ時刻: ${new Date(lt*1000).toLocaleString("ja-JP")}`;
     ss(`✓ ${LD.length}/${tg.length} ワールド取得完了`,"ok");
     document.getElementById("dash-local").classList.remove("hidden");renderL();
-  }catch(e){ss(`✗ ${e.message}`,"err");}finally{btn.disabled=false;}}
+  }catch(e){ss(`✗ ${e.message}`,"err");}finally{fetchLock.local=false;}}
 
 function renderL(){const s=cntS(LD);
   document.getElementById("l-total").textContent=s.total;document.getElementById("l-dom").textContent=s.domination;
@@ -307,8 +326,8 @@ async function getWG(){if(wgCache)return wgCache;const MSG="APIサーバーが�
 function gSrv(grp){if(!grp.worlds?.length)return"?";return String(grp.worlds[0]).charAt(0);}
 
 async function fetchGlobal(){
-  const btn=document.getElementById("g-btn"),sf=document.getElementById("g-srv").value,cf=parseInt(document.getElementById("g-cls").value);
-  btn.disabled=true;GD=[];gWF=null;document.getElementById("wf-float").classList.add("hidden");ss("ワールドグループ取得中…","loading");
+  const sf=document.getElementById("g-srv").value,cf=parseInt(document.getElementById("g-cls").value);
+  if(fetchLock.global)return;fetchLock.global=true;GD=[];gWF=null;document.getElementById("wf-float").classList.add("hidden");ss("ワールドグループ取得中…","loading");
   try{const all=await getWG();
     let grps=all.filter(g=>g.globalgvg);
     if(sf!=="0")grps=grps.filter(g=>gSrv(g)===sf);
@@ -330,7 +349,7 @@ async function fetchGlobal(){
     if(lt>0)document.getElementById("g-ts").textContent=`データ時刻: ${new Date(lt*1000).toLocaleString("ja-JP")}`;
     ss(`✓ ${GD.length}/${tasks.length} ブロック取得完了`,"ok");
     document.getElementById("dash-global").classList.remove("hidden");renderG();
-  }catch(e){ss(`✗ ${e.message}`,"err");}finally{btn.disabled=false;}}
+  }catch(e){ss(`✗ ${e.message}`,"err");}finally{fetchLock.global=false;}}
 
 function renderG(){const fd=gfGD(),s=cntS(fd);
   const dg=document.getElementById("dash-global");dg.classList.toggle("g-hide-srv",document.getElementById("g-srv").value!=="0");
@@ -343,7 +362,7 @@ function renderG(){const fd=gfGD(),s=cntS(fd);
   renderGT();}
 function renderGT(){bldFull(document.getElementById("g-tB"),gfGD(),document.getElementById("g-fG"),document.getElementById("g-fS"),true);}
 
-document.addEventListener("DOMContentLoaded",()=>{fetchLocal();});
+document.addEventListener("DOMContentLoaded",()=>{fetchAll().then(schedNext);document.getElementById("schedTime").addEventListener("change",schedNext);});
 </script>
 </body>
 </html>
