@@ -275,8 +275,8 @@ function switchTab(tab){curTab=tab;
 async function fetchLocal(){
   const srv=document.getElementById("l-srv").value,btn=document.getElementById("l-btn");
   btn.disabled=true;LD=[];ss("ワールド一覧を取得中…","loading");
-  try{const wr_res=await fetch("https://api.mentemori.icu/worlds");if(wr_res.status===503)throw new Error("APIサーバーがメンテナンス中です。しばらく待ってから再取得してください");const wr=await wr_res.json();
-    if(wr.status!==200)throw new Error("取得失敗");
+  try{const MSG="APIサーバーがメンテナンス中です。しばらく待ってから再取得してください";let wr_res;try{wr_res=await fetch("https://api.mentemori.icu/worlds");}catch(e){throw new Error(MSG);}if(!wr_res.ok)throw new Error(MSG);const wr=await wr_res.json();
+    if(wr.status!==200)throw new Error(MSG);
     const tg=wr.data.filter(w=>w.localgvg&&String(w.world_id).startsWith(srv)).map(w=>w.world_id);
     if(!tg.length)throw new Error("対象なし");
     let dn=0,lt=0;ss(`${tg.length}ワールド取得中… (0/${tg.length})`,"loading");
@@ -303,7 +303,7 @@ function renderL(){const s=cntS(LD);
 function renderLT(){bldFull(document.getElementById("l-tB"),LD,document.getElementById("l-fG"),document.getElementById("l-fS"),false);}
 
 // グランドバトル
-async function getWG(){if(wgCache)return wgCache;for(let i=0;i<3;i++){try{const res=await fetch("https://api.mentemori.icu/wgroups");if(res.status===503)throw new Error("APIサーバーがメンテナンス中です。しばらく待ってから再取得してください");const r=await res.json();if(r.status===200){wgCache=r.data;return wgCache;}}catch(e){if(e.message.includes("メンテナンス"))throw e;}if(i<2)await new Promise(r=>setTimeout(r,1000));}throw new Error("WG取得失敗");}
+async function getWG(){if(wgCache)return wgCache;const MSG="APIサーバーがメンテナンス中です。しばらく待ってから再取得してください";for(let i=0;i<3;i++){try{const res=await fetch("https://api.mentemori.icu/wgroups");if(!res.ok)throw new Error(MSG);const r=await res.json();if(r.status===200){wgCache=r.data;return wgCache;}}catch(e){if(e.message===MSG)throw e;}if(i<2)await new Promise(r=>setTimeout(r,1000));}throw new Error(MSG);}
 function gSrv(grp){if(!grp.worlds?.length)return"?";return String(grp.worlds[0]).charAt(0);}
 
 async function fetchGlobal(){
