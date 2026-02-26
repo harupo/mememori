@@ -26,6 +26,9 @@
     --monopoly: #e74c3c;
     --oligopoly: #f39c12;
     --contested: #2ecc71;
+    --oligo-a: #f39c12;
+    --oligo-b: #74b9ff;
+    --oligo-c: #fd79a8;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -210,6 +213,21 @@
   .castle-cell {
     font-weight: 600;
     font-size: 0.78rem;
+  }
+
+  /* スマホ対応 */
+  @media (max-width: 768px) {
+    .header { padding: 1.2rem 1rem 0.8rem; }
+    .header h1 { font-size: 1.2rem; }
+    .controls { padding: 0.8rem 1rem; }
+    .dashboard { padding: 1rem; }
+    .summary-row { grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+    .stat-card { padding: 0.8rem 0.5rem; }
+    .stat-card .value { font-size: 1.4rem; }
+    .stat-card .label { font-size: 0.65rem; }
+    .table-wrap { font-size: 0.75rem; }
+    tbody td, thead th { padding: 0.4rem 0.5rem; }
+    .castle-cell { white-space: normal; word-break: break-all; }
   }
   .tag-monopoly {
     display: inline-block;
@@ -421,7 +439,16 @@
 
   <!-- 寡占テーブル -->
   <div class="table-card" id="oligopolyTableCard">
-    <h3><span style="color:var(--oligopoly);">🟠 寡占が発生しているワールド一覧</span> <span id="oligopolyTableCount" style="font-weight:400;"></span></h3>
+    <h3>
+      <span style="color:var(--oligopoly);">🟠 寡占が発生しているワールド一覧</span>
+      <span id="oligopolyTableCount" style="font-weight:400;"></span>
+      <span style="font-size:0.72rem; font-weight:400; margin-left:1rem; color:var(--text-dim);">
+        凡例:
+        <span style="color:var(--oligo-a); font-weight:700;">■ 寡占ギルド</span>
+        <span style="color:var(--oligo-b); font-weight:700; margin-left:0.5rem;">■ その他B</span>
+        <span style="color:var(--oligo-c); font-weight:700; margin-left:0.5rem;">■ その他C</span>
+      </span>
+    </h3>
     <div class="table-wrap" style="max-height:400px;">
       <table>
         <thead>
@@ -498,6 +525,25 @@ function getGuildColor(guildName) {
     colorIndex++;
   }
   return guildColorMap[guildName];
+}
+
+/**
+ * 寡占ワールド用の固定カラーを返す
+ * dominant(最多ギルド) → A色(橙), それ以外 → B色, C色 の順に割当
+ */
+function getOligopolyColor(guildName, analysis) {
+  if (!guildName || guildName === "NPC") return "#444";
+  if (guildName === analysis.dominant) return "var(--oligo-a)";
+  // dominant以外のギルド名を列挙（出現順）
+  const others = [];
+  for (const n of analysis.names) {
+    if (n !== analysis.dominant && n !== "NPC" && !others.includes(n)) {
+      others.push(n);
+    }
+  }
+  const idx = others.indexOf(guildName);
+  if (idx === 0) return "var(--oligo-b)";
+  return "var(--oligo-c)";
 }
 
 function setStatus(text, type = "") {
@@ -703,7 +749,9 @@ function renderCharts() {
       const pip = document.createElement("span");
       pip.className = "castle-pip";
       const gname = a.names[i];
-      pip.style.backgroundColor = getGuildColor(gname);
+      pip.style.backgroundColor = a.status === "oligopoly"
+        ? getOligopolyColor(gname, a)
+        : getGuildColor(gname);
       pip.title = `${CASTLE_NAMES[i]}: ${gname}`;
       castles.appendChild(pip);
     }
@@ -815,8 +863,8 @@ function renderDetailTables() {
       const td = document.createElement("td");
       td.className = "castle-cell";
       const name = a.names[i];
-      const color = getGuildColor(name);
-      td.innerHTML = `<span class="guild-color-dot" style="background:${color}"></span>${name}`;
+      td.textContent = name;
+      td.style.color = "var(--monopoly)";
       tr.appendChild(td);
     }
 
@@ -863,8 +911,8 @@ function renderDetailTables() {
       const td = document.createElement("td");
       td.className = "castle-cell";
       const name = a.names[i];
-      const color = getGuildColor(name);
-      td.innerHTML = `<span class="guild-color-dot" style="background:${color}"></span>${name}`;
+      td.textContent = name;
+      td.style.color = getOligopolyColor(name, a);
       tr.appendChild(td);
     }
 
@@ -916,8 +964,14 @@ function renderTable() {
       const td = document.createElement("td");
       td.className = "castle-cell";
       const name = a.names[i];
-      const color = getGuildColor(name);
-      td.innerHTML = `<span class="guild-color-dot" style="background:${color}"></span>${name}`;
+      td.textContent = name;
+      if (a.status === "monopoly") {
+        td.style.color = "var(--monopoly)";
+      } else if (a.status === "oligopoly") {
+        td.style.color = getOligopolyColor(name, a);
+      } else {
+        td.style.color = "var(--text)";
+      }
       tr.appendChild(td);
     }
 
