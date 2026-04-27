@@ -1,108 +1,2476 @@
 <!DOCTYPE html>
+
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <title>メメントモリ育成スタイル診断</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>メメントモリ ギルドバトル / グランドバトル 拠点占有ダッシュボード</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap');
+  :root {
+    --bg-deep:#0a0a0f;--bg-card:#12121a;--bg-card-hover:#1a1a26;
+    --border:#2a2a3a;--text:#e0e0ec;--text-dim:#8888a0;--accent:#6c5ce7;
+    --domination:#ff6b6b;--monopoly:#e74c3c;--oligopoly:#f39c12;--contested:#2ecc71;
+    --oligo-a:#f39c12;--oligo-b:#74b9ff;--oligo-c:#fd79a8;
+    --c-ai:#4a9ded;--c-ku:#ed4a4a;--c-sui:#3de88a;--c-ki:#edcc3d;--c-ten:#c0c0e8;--c-mei:#a84aed;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Noto Sans JP',sans-serif;background:var(--bg-deep);color:var(--text);min-height:100vh;line-height:1.6;overflow-x:hidden;}
+  .header{padding:.6rem 2rem .4rem;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#101018,var(--bg-deep));}
+  .header h1{font-size:1.2rem;font-weight:900;background:linear-gradient(135deg,#fff,#a0a0d0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+  .tabs{display:flex;border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .tab-btn{font-family:'Noto Sans JP',sans-serif;font-size:.9rem;font-weight:600;padding:.8rem 1.5rem;border:none;background:none;color:var(--text-dim);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap;flex-shrink:0;}
+  .tab-btn:hover{color:var(--text);} .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+  .controls{padding:1rem 2rem;display:flex;gap:1rem;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--border);}
+  .controls label{font-size:.85rem;color:var(--text-dim);}
+  .controls select,.controls button{font-family:'Noto Sans JP',sans-serif;font-size:.85rem;padding:.4rem .8rem;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);cursor:pointer;}
+  .controls button{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;transition:all .2s;}
+  .controls button:hover{filter:brightness(1.2);} .controls button:disabled{opacity:.5;cursor:not-allowed;}
+  .info-bar{border-bottom:1px solid var(--border);}
+  .info-row{padding:.35rem 2rem;display:flex;gap:.5rem;font-size:.72rem;font-family:'JetBrains Mono',monospace;color:var(--text-dim);align-items:center;flex-wrap:wrap;}
+  .info-sep{color:#3a3a4a;font-size:.65rem;}
+  .status-text .ok{color:#2ecc71;} .status-text .err{color:#e74c3c;} .status-text .loading{color:#f39c12;}
+  .dashboard{padding:1.5rem 2rem;display:grid;gap:1.5rem;}
+  .summary-row{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem;}
+  .stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:.7rem .5rem;text-align:center;}
+  .stat-card .value{font-size:1.4rem;font-weight:900;font-family:'JetBrains Mono',monospace;}
+  .stat-card .label{font-size:.6rem;color:var(--text-dim);margin-top:.2rem;text-transform:uppercase;letter-spacing:.03em;}
+  .stat-card .rate{font-size:.65rem;font-family:'JetBrains Mono',monospace;color:var(--text-dim);margin-top:.1rem;}
+  .stat-card.domination .value{color:var(--domination);} .stat-card.monopoly .value{color:var(--monopoly);}
+  .stat-card.oligopoly .value{color:var(--oligopoly);} .stat-card.contested .value{color:var(--contested);}
+  .charts-row{display:grid;grid-template-columns:2fr 1fr;gap:1.5rem;}
+  @media(max-width:900px){.charts-row{grid-template-columns:1fr;}}
+  .chart-card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:1.2rem;}
+  .chart-card h3{font-size:.9rem;font-weight:600;margin-bottom:1rem;color:var(--text-dim);}
+  .chart-container{position:relative;width:100%;max-height:350px;}
+  .table-card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+  .table-card h3{font-size:.9rem;font-weight:600;padding:1rem 1.2rem;color:var(--text-dim);border-bottom:1px solid var(--border);}
+  .table-wrap{overflow-x:auto;max-height:600px;overflow-y:auto;}
+  table{width:100%;border-collapse:collapse;font-size:.82rem;}
+  thead th{position:sticky;top:0;background:#1a1a26;padding:.6rem .8rem;text-align:left;font-weight:600;color:var(--text-dim);border-bottom:2px solid var(--border);white-space:nowrap;z-index:2;}
+  tbody td{padding:.5rem .8rem;border-bottom:1px solid #1e1e2e;white-space:nowrap;}
+  tbody tr:hover{background:var(--bg-card-hover);}
+  .castle-cell{font-weight:600;font-size:.78rem;white-space:nowrap;}
+  .tag-domination{display:inline-block;padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:700;color:#fff;background:linear-gradient(135deg,#ff6b6b,#ee5a24);}
+  .tag-monopoly{display:inline-block;padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:700;color:#fff;background:var(--monopoly);}
+  .tag-oligopoly{display:inline-block;padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:700;color:#fff;background:var(--oligopoly);}
+  .tag-contested{display:inline-block;padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:700;color:#fff;background:var(--contested);}
+  .filter-row{padding:0 1.2rem .8rem;display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;}
+  .filter-row input,.filter-row select{font-family:'Noto Sans JP',sans-serif;font-size:.82rem;padding:.3rem .6rem;border-radius:6px;border:1px solid var(--border);background:var(--bg-deep);color:var(--text);}
+  .filter-row input{width:260px;}
+  .hidden{display:none !important;}
+  .global-filter-bar{display:flex;gap:1rem;align-items:center;flex-wrap:wrap;padding:1rem 0;border-bottom:1px solid var(--border);margin-bottom:.5rem;}
+  .global-filter-bar label{font-size:.82rem;color:var(--text-dim);font-weight:600;}
+  .global-filter-bar select,.global-filter-bar input{font-family:'Noto Sans JP',sans-serif;font-size:.82rem;padding:.35rem .7rem;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);}
+  .g-hide-srv .srv-col{display:none !important;}
+  .mono-item{display:flex;align-items:center;gap:.6rem;padding:.5rem .8rem;border-bottom:1px solid #1e1e2e;font-size:.82rem;min-width:max-content;}
+  .mono-item:hover{background:var(--bg-card-hover);}
+  .mono-item .world-id{font-family:'JetBrains Mono',monospace;font-weight:600;min-width:50px;flex-shrink:0;}
+  .mono-item .guild-name{font-weight:600;white-space:nowrap;flex-shrink:0;}
+  .mono-item .castle-count{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--text-dim);flex-shrink:0;}
+  .mono-section-header{padding:.6rem .8rem .3rem;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-dim);}
+  .mono-section-header.domination-header{color:var(--domination);}
+  .mono-section-header.monopoly-header{color:var(--monopoly);}
+  .mono-section-header.oligopoly-header{color:var(--oligopoly);}
+  .worlds-cell{max-width:260px;white-space:normal;line-height:1.8;}
+  .world-tag{display:inline-block;padding:.1rem .45rem;margin:.1rem .15rem;border-radius:4px;font-size:.72rem;font-family:'JetBrains Mono',monospace;font-weight:600;background:#1e1e3a;border:1px solid #2e2e4a;color:#b0b0d0;cursor:pointer;transition:all .15s;}
+  .world-tag:hover{background:#2a2a50;border-color:#4a4a7a;color:#e0e0ff;}
+  .world-tag.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .wf-float{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--bg-card);border:1px solid var(--accent);border-radius:10px;padding:.6rem 1.2rem;display:flex;align-items:center;gap:1rem;z-index:100;box-shadow:0 4px 24px rgba(108,92,231,.3);}
+  .wf-float .wf-label{font-size:.85rem;font-weight:600;color:var(--text);}
+  .wf-float .wf-label span{color:var(--accent);font-family:'JetBrains Mono',monospace;}
+  .wf-float button{font-family:'Noto Sans JP',sans-serif;font-size:.82rem;font-weight:600;padding:.4rem 1rem;border-radius:6px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;transition:all .15s;}
+  .wf-float button:hover{filter:brightness(1.2);}
+  @media(max-width:768px){
+    .header{padding:.5rem 1rem .3rem;} .header h1{font-size:1rem;}
+    .tab-btn{padding:.6rem .8rem;font-size:.78rem;}
+    .info-row{padding:.3rem 1rem;font-size:.65rem;}
+    .controls{padding:.6rem 1rem;} .dashboard{padding:.6rem .8rem;gap:.6rem;}
+    .summary-row{grid-template-columns:repeat(4,1fr);gap:.3rem;}
+    .stat-card{padding:.4rem .2rem;border-radius:5px;} .stat-card .value{font-size:.9rem;} .stat-card .label{font-size:.45rem;}
+    .hm-controls{padding:.4rem .6rem;margin-bottom:.4rem;}
+    .hm-controls-grid{grid-template-columns:1fr!important;gap:.4rem;}
+    .hm-meta{font-size:.65rem;flex-wrap:wrap;}
+    .hm-view-btn{padding:.35rem .8rem;font-size:.75rem;}
+    .hm-filter-toggle{display:block;}
+    .hm-controls.collapsed{display:none;}
+    .table-wrap{font-size:.75rem;} tbody td,thead th{padding:.4rem .5rem;}
+    .castle-cell{white-space:nowrap;}
+  }
+  /* ヒートマップ */
+  .hm-summary-table{width:100%;border-collapse:collapse;font-size:.75rem;margin-bottom:.6rem;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+  .hm-summary-table th{padding:.35rem .6rem;text-align:left;font-weight:600;color:var(--text-dim);font-size:.65rem;text-transform:uppercase;letter-spacing:.03em;border-bottom:1px solid var(--border);}
+  .hm-summary-table td{padding:.3rem .6rem;border-bottom:1px solid #1e1e2e;font-family:'JetBrains Mono',monospace;font-size:.72rem;}
+  .hm-summary-table tr:last-child td{border-bottom:none;}
+  .hm-summary-table .hm-st-dot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:.4rem;vertical-align:middle;}
+  .hm-summary-table .hm-st-name{color:var(--text);}
+  .hm-summary-table .hm-st-count{text-align:right;font-weight:700;}
+  .hm-summary-table .hm-st-pct{text-align:right;color:var(--text-dim);}
+  .hm-controls{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:.5rem .8rem;margin-bottom:.6rem;}
+  .hm-controls-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;align-items:end;}
+  .hm-field label{display:block;font-size:.68rem;color:var(--text-dim);margin-bottom:.2rem;}
+  .hm-field .hm-input,.hm-field .hm-select{width:100%;height:30px;border-radius:6px;border:1px solid var(--border);background:var(--bg-deep);color:var(--text);padding:0 .5rem;font-family:'Noto Sans JP',sans-serif;font-size:.75rem;outline:none;}
+  .hm-range-row{display:flex;justify-content:space-between;font-size:.68rem;color:var(--text-dim);margin-bottom:.2rem;}
+  .hm-field input[type="range"]{width:100%;accent-color:var(--accent);}
+
+  /* 統合凡例 */
+  .hm-legend-combined{
+    display:flex;flex-wrap:nowrap;gap:.5rem 1.4rem;margin-top:.4rem;align-items:center;
+  }
+  .hm-legend-item{
+    display:flex;align-items:center;gap:.4rem;min-width:0;
+  }
+  .hm-legend-label{
+    font-size:.68rem;color:var(--text-dim);white-space:nowrap;font-weight:600;
+  }
+  .hm-legend-bar-wrap{
+    display:flex;align-items:center;gap:.3rem;flex:1;min-width:60px;max-width:180px;
+  }
+  .hm-legend-edge{
+    font-size:.65rem;color:var(--text-dim);white-space:nowrap;opacity:.8;
+  }
+  @media(max-width:480px){
+    .hm-legend-bar-wrap{min-width:60px;}
+    .hm-legend-label{font-size:.62rem;}
+    .hm-legend-edge{font-size:.6rem;}
+  }
+  .hm-legend{margin-top:.5rem;}
+  .hm-legend-row{display:flex;justify-content:space-between;font-size:.68rem;color:var(--text-dim);margin-bottom:.2rem;}
+  .hm-legend-bar{height:6px;border-radius:99px;background:linear-gradient(90deg,hsl(215 78% 50%) 0%,hsl(179 78% 49%) 17%,hsl(143 78% 47%) 33%,hsl(95 78% 46%) 56%,hsl(48 78% 44%) 78%,hsl(0 78% 42%) 100%);border:1px solid rgba(255,255,255,.08);flex:1;}
+  .hm-meta{display:flex;gap:1rem;margin-top:.4rem;font-size:.7rem;color:var(--text-dim);align-items:center;}
+  .hm-view-toggle{display:flex;gap:0;margin-left:auto;}
+  .hm-view-btn{font-family:'Noto Sans JP',sans-serif;font-size:.8rem;font-weight:700;padding:.45rem 1rem;border:2px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;transition:all .15s;}
+  .hm-view-btn:first-child{border-radius:8px 0 0 8px;} .hm-view-btn:last-child{border-radius:0 8px 8px 0;}
+  .hm-view-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+  /* .controls button の上書き */
+  .controls .hm-view-btn{background:transparent !important;border-color:var(--border) !important;color:var(--text-dim) !important;border-width:2px;}
+  .controls .hm-view-btn.active{background:var(--accent) !important;border-color:var(--accent) !important;color:#fff !important;}
+  .hm-filter-toggle{display:none;font-family:'Noto Sans JP',sans-serif;font-size:.7rem;font-weight:600;padding:.25rem .7rem;border:1px solid var(--border);background:var(--bg-card);color:var(--text-dim);border-radius:6px;cursor:pointer;}
+  .hm-filter-toggle:hover{color:var(--text);border-color:var(--accent);}
+  .hm-controls.collapsed{}
+  .hm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.8rem;}
+  .hm-tile{min-height:110px;border-radius:14px;padding:1rem;border:1px solid rgba(255,255,255,.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 8px 20px rgba(0,0,0,.22);transition:transform .15s,box-shadow .15s,filter .15s;position:relative;overflow:hidden;cursor:default;}
+  .hm-tile:hover{transform:translateY(-2px) scale(1.01);filter:brightness(1.04);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 14px 28px rgba(0,0,0,.3);}
+  .hm-tile::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.10),transparent 35%);pointer-events:none;}
+  .hm-tile-top{display:flex;justify-content:space-between;align-items:flex-start;gap:6px;position:relative;z-index:1;}
+  .hm-tile-world{font-size:.7rem;opacity:.88;}
+  .hm-tile-wid{font-weight:800;font-size:1.4rem;line-height:1;letter-spacing:-.03em;font-family:'JetBrains Mono',monospace;}
+  .hm-badge{font-size:.65rem;padding:.3rem .5rem;border-radius:99px;background:rgba(0,0,0,.14);border:1px solid rgba(255,255,255,.08);white-space:nowrap;}
+  .hm-tile-body{position:relative;z-index:1;margin-top:1rem;}
+  .hm-tile-rate{font-size:1.6rem;font-weight:800;letter-spacing:-.04em;line-height:1;margin-bottom:.3rem;font-family:'JetBrains Mono',monospace;}
+  .hm-tile-sub{font-size:.7rem;opacity:.92;}
+  .hm-tile-guild{font-size:.68rem;margin-top:.3rem;opacity:.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  @media(max-width:1024px){.hm-controls-grid{grid-template-columns:1fr;}}
+  @media(max-width:640px){.hm-grid:not(.hm-compact){grid-template-columns:repeat(3,minmax(0,1fr));gap:.5rem;}.hm-tile{min-height:80px;padding:.6rem;border-radius:10px;}.hm-tile-wid{font-size:1.1rem;}.hm-tile-rate{font-size:1.1rem;}.hm-tile-body{margin-top:.5rem;}.hm-tile-sub{font-size:.6rem;}.hm-tile-guild{font-size:.55rem;}.hm-badge{font-size:.55rem;padding:.2rem .4rem;}}
+  .hm-compact{grid-template-columns:repeat(auto-fill,minmax(36px,1fr))!important;gap:2px!important;}
+  .hm-compact .hm-tile{min-height:0;padding:3px 2px;border-radius:4px;text-align:center;box-shadow:none;}
+  .hm-compact .hm-tile::after{display:none;}
+  .hm-compact .hm-tile:hover{transform:scale(1.08);}
+  .hm-compact .hm-tile-top{display:none;}
+  .hm-compact .hm-tile-body{margin-top:0;}
+  .hm-compact .hm-tile-wid-compact{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:.7rem;line-height:1.2;opacity:.9;}
+  .hm-compact .hm-tile-rate{font-size:.65rem;font-weight:700;margin-bottom:0;}
+  .hm-compact .hm-tile-sub,.hm-compact .hm-tile-guild,.hm-compact .hm-badge{display:none;}
+  .hm-date-bar{position:fixed;bottom:0;left:0;right:0;background:#1a1a26;border-top:2px solid var(--accent);padding:.8rem 1.2rem;z-index:90;box-shadow:0 -4px 20px rgba(0,0,0,.5);}
+  .hm-date-row{display:flex;align-items:center;gap:.6rem;max-width:1200px;margin:0 auto;}
+  .hm-date-label{font-size:.78rem;color:var(--text-dim);font-weight:600;white-space:nowrap;}
+  .hm-date-value{font-family:'JetBrains Mono',monospace;font-size:.85rem;font-weight:700;color:var(--text);min-width:6.5em;text-align:center;white-space:nowrap;}
+  .hm-date-slider{flex:1;accent-color:var(--accent);min-width:0;}
+  .hm-date-nav{display:flex;gap:4px;flex-shrink:0;}
+  .hm-date-nav button{font-family:'Noto Sans JP',sans-serif;font-size:.75rem;font-weight:600;padding:.3rem .6rem;border:1px solid var(--border);background:var(--bg-deep);color:var(--text-dim);border-radius:6px;cursor:pointer;transition:all .15s;}
+  .hm-date-nav button:hover:not(:disabled){background:var(--accent);border-color:var(--accent);color:#fff;}
+  .hm-date-nav button:disabled{opacity:.3;cursor:not-allowed;}
+  .hm-date-tag{font-size:.68rem;color:var(--text-dim);font-family:'JetBrains Mono',monospace;white-space:nowrap;flex-shrink:0;}
+  .hm-play-row{display:flex;align-items:center;gap:.6rem;max-width:1200px;margin:.5rem auto 0;}
+  .hm-date-spacer{height:72px;}
+  .hm-play-row{display:flex;align-items:center;gap:.8rem;margin-top:.6rem;}
+  .hm-play-btn{font-family:'Noto Sans JP',sans-serif;font-size:.75rem;font-weight:600;padding:.3rem .8rem;border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:6px;cursor:pointer;transition:all .15s;min-width:4em;text-align:center;}
+  .hm-play-btn:hover{filter:brightness(1.2);}
+  .hm-play-btn.playing{background:#e74c3c;border-color:#e74c3c;}
+  .hm-speed-label{font-size:.72rem;color:var(--text-dim);}
+  .hm-speed-btns{display:flex;gap:2px;}
+  .hm-speed-btn{font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:600;padding:.25rem .5rem;border:1px solid var(--border);background:var(--bg-deep);color:var(--text-dim);cursor:pointer;transition:all .15s;}
+  .hm-speed-btn:first-child{border-radius:5px 0 0 5px;} .hm-speed-btn:last-child{border-radius:0 5px 5px 0;}
+  .hm-speed-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+  #dash-heatmap.hm-playing>.hm-summary-table,#dash-heatmap.hm-playing>.hm-controls{display:none;}
+  #dash-heatmap.hm-playing>.hm-date-spacer{height:80px;}
+  #dash-heatmap.hm-playing .hm-grid.hm-compact{grid-template-columns:repeat(auto-fill,minmax(36px,1fr))!important;gap:2px!important;}
+  #dash-heatmap.hm-playing .hm-compact .hm-tile{padding:3px 2px;border-radius:4px;}
+  #dash-heatmap.hm-playing .hm-compact .hm-tile-wid-compact{font-size:.55rem;}
+  #dash-heatmap.hm-playing .hm-compact .hm-tile-rate{font-size:.5rem;}
+  @media(min-width:769px){
+    #dash-heatmap.hm-playing .hm-grid.hm-compact{grid-template-columns:repeat(auto-fill,minmax(56px,1fr))!important;gap:3px!important;}
+    #dash-heatmap.hm-playing .hm-compact .hm-tile{padding:6px 4px;border-radius:5px;}
+    .hm-compact{grid-template-columns:repeat(auto-fill,minmax(56px,1fr))!important;gap:3px!important;}
+    .hm-compact .hm-tile{padding:6px 4px;border-radius:5px;}
+    #dash-heatmap.hm-playing .hm-compact .hm-tile-wid-compact{font-size:.7rem;}
+    #dash-heatmap.hm-playing .hm-compact .hm-tile-rate{font-size:.65rem;}
+  }
+
+  /* ── 採用属性分布タブ ─────────────────────────── */
+  .attr-bar{display:flex;height:10px;border-radius:99px;overflow:hidden;margin-bottom:.45rem;}
+  .attr-seg{height:100%;min-width:0;}
+  .attr-seg.ai{background:var(--c-ai);} .attr-seg.ku{background:var(--c-ku);}
+  .attr-seg.sui{background:var(--c-sui);} .attr-seg.ki{background:var(--c-ki);}
+  .attr-seg.ten{background:var(--c-ten);} .attr-seg.mei{background:var(--c-mei);}
+  #dash-arena .summary-row{grid-template-columns:repeat(7,1fr);}
+  #dash-arena .stat-card.ai .value{color:var(--c-ai);}
+  #dash-arena .stat-card.ku .value{color:var(--c-ku);}
+  #dash-arena .stat-card.sui .value{color:var(--c-sui);}
+  #dash-arena .stat-card.ki .value{color:var(--c-ki);}
+  #dash-arena .stat-card.ten .value{color:var(--c-ten);}
+  #dash-arena .stat-card.mei .value{color:var(--c-mei);}
+  .arena-dom-bar-wrap{display:flex;align-items:center;gap:.8rem;margin-bottom:.4rem;flex-wrap:wrap;}
+  .arena-dom-bar{flex:1;min-width:120px;height:8px;border-radius:99px;display:flex;overflow:hidden;}
+  .arena-dom-seg{height:100%;}
+  .arena-dom-legend{display:flex;gap:.8rem;flex-wrap:wrap;font-size:.7rem;}
+  .arena-dom-legend-item{display:flex;align-items:center;gap:.3rem;}
+  .arena-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+  .arena-src-toggle{display:flex;gap:0;}
+  .arena-src-btn{font-family:'Noto Sans JP',sans-serif;font-size:.72rem;font-weight:600;padding:.3rem .7rem;border:1px solid var(--border);background:var(--bg-deep);color:var(--text-dim);cursor:pointer;transition:all .15s;}
+  .arena-src-btn:first-child{border-radius:5px 0 0 5px;} .arena-src-btn:last-child{border-radius:0 5px 5px 0;}
+  .arena-src-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+  #dash-arena .hm-tile-dominant{font-size:1.45rem;font-weight:900;line-height:1;letter-spacing:-.03em;font-family:'JetBrains Mono',monospace;margin-bottom:.15rem;}
+  #dash-arena .hm-tile-pct{font-size:.68rem;opacity:.85;}
+  #dash-arena .hm-compact .attr-bar{display:none;}
+  #dash-arena .hm-compact .hm-tile-dominant{font-size:.8rem;}
+  #dash-arena .hm-compact .hm-tile-pct{display:none;}
+  #dash-arena .hm-compact .hm-tile-wid-compact{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:.65rem;opacity:.85;line-height:1.3;}
+  #dash-arena thead th.ai{color:var(--c-ai);} #dash-arena thead th.ku{color:var(--c-ku);}
+  #dash-arena thead th.sui{color:var(--c-sui);} #dash-arena thead th.ki{color:var(--c-ki);}
+  #dash-arena thead th.ten{color:var(--c-ten);} #dash-arena thead th.mei{color:var(--c-mei);}
+  #dash-arena thead th{text-align:right;cursor:pointer;user-select:none;}
+  #dash-arena thead th:first-child{text-align:left;}
+  #dash-arena thead th:hover{color:var(--text);}
+  #dash-arena thead th.sort-asc::after{content:" ▲";font-size:.65rem;}
+  #dash-arena thead th.sort-desc::after{content:" ▼";font-size:.65rem;}
+  #dash-arena tbody td{text-align:right;}
+  #dash-arena tbody td:first-child{text-align:left;}
+  .td-attrbar-wrap{position:relative;}
+  .td-attrbar{position:absolute;bottom:0;left:0;height:2px;border-radius:0 1px 1px 0;}
+  .td-dom.ai{color:var(--c-ai);font-weight:700;} .td-dom.ku{color:var(--c-ku);font-weight:700;}
+  .td-dom.sui{color:var(--c-sui);font-weight:700;} .td-dom.ki{color:var(--c-ki);font-weight:700;}
+  .td-dom.ten{color:var(--c-ten);font-weight:700;} .td-dom.mei{color:var(--c-mei);font-weight:700;}
+  @media(max-width:768px){
+    #dash-arena .summary-row{grid-template-columns:repeat(4,1fr);}
+  }
+
+  /* ── アリーナ: カード→テーブル ジャンプ ── */
+  #a-grid .hm-tile{cursor:pointer;}
+  #a-table tbody tr.arena-row-focus{
+    background:rgba(108,92,231,.28)!important;
+    box-shadow:inset 3px 0 0 #a78bfa, inset -1px 0 0 rgba(167,139,250,.2);
+    outline:none;
+  }
+  #a-table tbody tr.arena-row-focus td{
+    color:#fff;
+  }
+  .arena-back-btn{
+    position:fixed;bottom:130px;right:20px;z-index:95;
+  }
+  .arena-back-btn button{
+    font-family:'Noto Sans JP',sans-serif;font-size:.82rem;font-weight:700;
+    padding:.55rem 1.2rem;border-radius:8px;
+    border:1px solid var(--accent);background:var(--accent);color:#fff;
+    cursor:pointer;box-shadow:0 4px 16px rgba(108,92,231,.4);transition:all .15s;
+    display:flex;align-items:center;gap:.4rem;
+  }
+  .arena-back-btn button:hover{filter:brightness(1.15);}
+
+  /* 占有ヒートマップ → ギルドバトル テーブルジャンプ */
+  #hm-grid .hm-tile{cursor:pointer;}
+  #l-tB tr.hm-row-focus{
+    background:rgba(108,92,231,.28)!important;
+    box-shadow:inset 3px 0 0 #a78bfa, inset -1px 0 0 rgba(167,139,250,.2);
+    outline:none;
+  }
+  #l-tB tr.hm-row-focus td{
+    color:#fff;
+  }
+  .hm-back-btn{
+    position:fixed;bottom:130px;right:20px;z-index:96;
+  }
+  .hm-back-btn button{
+    font-family:'Noto Sans JP',sans-serif;font-size:.82rem;font-weight:700;
+    padding:.55rem 1.2rem;border-radius:8px;
+    border:1px solid var(--accent);background:var(--accent);color:#fff;
+    cursor:pointer;box-shadow:0 4px 16px rgba(108,92,231,.4);transition:all .15s;
+    display:flex;align-items:center;gap:.4rem;
+  }
+  .hm-back-btn button:hover{filter:brightness(1.15);}
+
+  /* arena テーブル: 外部リンクアイコン hover 制御 */
+  #a-table .arena-ext-link{
+    display:inline-flex;align-items:center;justify-content:center;
+    margin-left:.35rem;width:16px;height:16px;
+    font-size:.65rem;font-style:normal;
+    color:var(--text-dim);text-decoration:none;
+    border:1px solid transparent;border-radius:3px;
+    vertical-align:middle;opacity:0;
+    transition:opacity .15s,color .15s;
+    flex-shrink:0;
+  }
+  /* PC: 行ホバー時に表示 */
+  @media(hover:hover){
+    #a-table tbody tr:hover .arena-ext-link{
+      opacity:1;color:var(--accent);border-color:rgba(108,92,231,.35);
+    }
+  }
+  /* タッチ端末: 常時表示（小さめ） */
+  @media(hover:none){
+    #a-table .arena-ext-link{opacity:.45;}
+  }
+
+  /* ══ ギルドストック ══ */
+  /* 占有ヒートマップタイル下部の活動バー */
+  .hm-tile-stock-bar{
+    position:absolute;bottom:0;left:0;right:0;height:8px;border-radius:0 0 14px 14px;
+    opacity:.9;
+  }
+  .hm-compact .hm-tile-stock-bar{height:5px;border-radius:0 0 6px 6px;}
+  /* ストックヒートマップタイル */
+  .stock-tile{
+    min-height:90px;border-radius:14px;padding:.8rem;
+    border:1px solid rgba(255,255,255,.08);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 6px 16px rgba(0,0,0,.22);
+    transition:transform .15s,filter .15s;
+    position:relative;overflow:hidden;cursor:default;color:#fff;
+  }
+  .stock-tile:hover{transform:translateY(-2px);filter:brightness(1.12);}
+  .stock-tile::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.10),transparent 35%);pointer-events:none;}
+  .stock-tile-top{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1;}
+  .stock-tile-world{font-size:.68rem;opacity:.85;}
+  .stock-tile-wid{font-weight:800;font-size:1.3rem;line-height:1;letter-spacing:-.03em;font-family:'JetBrains Mono',monospace;}
+  .stock-tile-body{position:relative;z-index:1;margin-top:.6rem;}
+  .stock-tile-val{font-size:1.4rem;font-weight:800;letter-spacing:-.03em;font-family:'JetBrains Mono',monospace;line-height:1;margin-bottom:.2rem;}
+  .stock-tile-lv{font-size:.68rem;opacity:.88;}
+  .stock-tile-badge{font-size:.6rem;padding:.25rem .45rem;border-radius:99px;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.1);white-space:nowrap;}
+  /* コンパクト */
+  .stock-grid.hm-compact{grid-template-columns:repeat(auto-fill,minmax(44px,1fr))!important;gap:2px!important;}
+  .stock-grid.hm-compact .stock-tile{min-height:0;padding:3px 2px;border-radius:4px;text-align:center;}
+  .stock-grid.hm-compact .stock-tile::after{display:none;}
+  .stock-grid.hm-compact .stock-tile-top,.stock-grid.hm-compact .stock-tile-body{display:none;}
+  .stock-grid.hm-compact .stock-tile-compact{display:block;font-family:'JetBrains Mono',monospace;font-size:.55rem;font-weight:700;opacity:.9;}
+  @media(min-width:769px){
+    .stock-grid.hm-compact{grid-template-columns:repeat(auto-fill,minmax(56px,1fr))!important;gap:3px!important;}
+    .stock-grid.hm-compact .stock-tile{padding:5px 3px;}
+    .stock-grid.hm-compact .stock-tile-compact{font-size:.68rem;}
+  }
+  /* ストックタブ summary legend */
+  .stock-legend{display:flex;gap:.8rem;flex-wrap:wrap;font-size:.72rem;align-items:center;}
+  .stock-legend-dot{width:12px;height:12px;border-radius:3px;display:inline-block;}
+
+  /* 散布図 */
+  .scatter-wrap{padding:1rem 1.5rem 120px;max-width:900px;margin:0 auto;}
+  .scatter-svg{width:100%;border-radius:12px;background:var(--bg-card);border:1px solid var(--border);}
+  .scatter-quadrant-label{font-size:11px;fill:rgba(255,255,255,.3);font-family:'Noto Sans JP',sans-serif;}
+  .scatter-dot{cursor:pointer;transition:r .1s,opacity .1s;}
+  .scatter-dot:hover{opacity:1 !important;}
+  .scatter-axis-label{font-size:11px;fill:var(--text-dim,#888);font-family:'JetBrains Mono',monospace;}
+  .scatter-tooltip{position:fixed;background:rgba(20,20,32,.95);border:1px solid var(--accent,#6c5ce7);border-radius:8px;padding:.5rem .8rem;font-size:.75rem;pointer-events:none;z-index:200;display:none;color:#fff;line-height:1.5;}
+
+  /* 占有ヒートマップ: 一覧→通常ジャンプ */
+  .hm-back-to-compact{position:fixed;bottom:190px;right:20px;z-index:95;}
+  .hm-back-to-compact button{
+    font-family:'Noto Sans JP',sans-serif;font-size:.78rem;font-weight:700;
+    padding:.5rem 1rem;border-radius:8px;
+    border:1px solid var(--accent);background:var(--accent);color:#fff;
+    cursor:pointer;box-shadow:0 4px 16px rgba(108,92,231,.4);transition:all .15s;
+    display:flex;align-items:center;gap:.4rem;white-space:nowrap;
+  }
+  .hm-back-to-compact button:hover{filter:brightness(1.15);}
+  /* ハイライトされたタイル */
+  .hm-tile-focused{
+    outline:3px solid #fff !important;
+    outline-offset:0px;
+    box-shadow:0 0 0 3px rgba(255,255,255,.4), 0 8px 24px rgba(0,0,0,.4) !important;
+    transform:scale(1.04) !important;
+    z-index:10;
+    position:relative;
+  }
+
+  /* 中央拠点ヒートマップ */
+  .hm-center-guild{font-size:.68rem;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+  .hm-center-score{font-size:1.5rem;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1.1;}
+  .hm-center-label{font-size:.62rem;opacity:.8;margin-top:.1rem;}
+  .hm-center-compact-score{font-size:.75rem;font-weight:700;font-family:'JetBrains Mono',monospace;}
+  .hm-center-compact-sub{font-size:.55rem;opacity:.85;}
+
+  @media(max-width:600px){
+    /* ギルドストック表示ボタンを短縮 */
+    #hm-stock-bar-btn::after{content:'';}
+    /* 一覧に戻るボタンを右端に固定 */
+    .hm-back-to-compact{bottom:170px;right:12px;}
+    .hm-back-btn{bottom:110px;}
+    .arena-back-btn{bottom:110px;}
+    /* 中央拠点ビューのタイルを適切なサイズに */
+    .hm-tile .hm-center-score{font-size:1.2rem;}
+    /* ストックタブのソートセレクトを全幅に */
+    #stock-sort{max-width:100%;}
+    /* ストックタブ: コンパクトタイルをより小さく */
+    .stock-grid.hm-compact{grid-template-columns:repeat(auto-fill,minmax(40px,1fr))!important;gap:2px!important;}
+    .stc-wid{font-size:.52rem;}
+    .stc-val{font-size:.50rem;}
+    /* ストックタブ: 一覧/通常/散布図 ボタンが切れないよう */
+    #stock-vb-scatter{font-size:.72rem;padding:.35rem .5rem;}
+  }
+
+
+  /* 中央拠点コンパクトビューのグリッド */
+  .hm-center-compact-grid.hm-compact{
+    grid-template-columns:repeat(auto-fill,minmax(52px,1fr))!important;
+    gap:3px!important;
+  }
+  /* 中央拠点コンパクトタイル */
+  .hm-center-compact-tile{
+    padding:4px 3px 6px !important;
+    min-height:0 !important;
+  }
+  .hm-center-compact-inner{
+    display:flex;flex-direction:column;align-items:center;gap:1px;
+  }
+  .hm-center-compact-top{
+    font-size:.6rem;font-weight:700;font-family:'JetBrains Mono',monospace;
+    line-height:1.2;opacity:.9;letter-spacing:-.02em;white-space:nowrap;
+  }
+  .hm-center-compact-fraction{
+    font-size:.68rem;font-weight:800;
+  }
+  .hm-center-compact-streak{
+    font-size:.72rem;font-weight:800;
+    font-family:'JetBrains Mono',monospace;
+    line-height:1;background:rgba(0,0,0,.22);
+    border-radius:3px;padding:1px 3px;
+    letter-spacing:-.01em;
+  }
+  /* 通常ビューのストリークバッジ */
+  .hm-center-streak-badge{
+    font-size:.72rem;font-weight:700;
+    padding:.18rem .45rem;border-radius:99px;
+    background:rgba(0,0,0,.28);white-space:nowrap;
+    line-height:1.2;
+  }
+
+  /* ストックタブ コンパクト1行タイル */
+  .stock-tile-compact-wrap{
+    padding:3px 2px !important;
+    min-height:0 !important;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .stock-tile-compact-line{
+    display:flex;flex-direction:column;align-items:center;
+    gap:0;line-height:1.15;
+    font-family:'JetBrains Mono',monospace;font-weight:700;
+  }
+  .stc-wid{font-size:.58rem;opacity:.85;}
+  .stc-val{font-size:.55rem;opacity:.95;letter-spacing:-.02em;}
+</style>
 </head>
 <body>
-  <div class="container" id="simulator">
-    <h1>メメントモリ<br>育成スタイル診断</h1>
+<div class="header">
+  <h1>⚔️ メメントモリ 拠点占有ダッシュボード</h1>
+</div>
+<div class="tabs">
+  <button class="tab-btn active" data-tab="local" onclick="switchTab('local')">⚔️ ギルドバトル</button>
+  <button class="tab-btn" data-tab="global" onclick="switchTab('global')">🌐 グランドバトル</button>
+  <button class="tab-btn" data-tab="heatmap" onclick="switchTab('heatmap')">🔥 占有ヒートマップ</button>
+  <button class="tab-btn" data-tab="arena" onclick="switchTab('arena')">🌈 採用属性分布</button>
+  <button class="tab-btn" data-tab="stock" onclick="switchTab('stock')">📦 ギルドストック</button>
+  <button class="tab-btn" data-tab="lament" onclick="switchTab('lament')">🎵 ラメント</button>
+</div>
+<div class="info-bar" id="infoBar">
+  <div class="info-row">
+    <span class="status-text" id="statusBar">読み込み中…</span>
+    <span class="info-inline" id="lastUpdate"></span>
+    <span class="info-sep">|</span>
+    <span style="color:var(--text-dim)">毎日18時更新</span>
+  </div>
+</div>
 
-    <label><span class="material-icons">show_chart</span>レベルリンク戦闘力</label>
-    <input type="number" id="levelPower" placeholder="例: 123456789" />
+<!-- ギルドバトル -->
 
-    <label><span class="material-icons">groups</span>バトリ編成5体の戦闘力</label>
-    <div id="battlePowerInputs">
-      <input type="number" id="battlePower1" placeholder="1体目の戦闘力" />
-      <input type="number" id="battlePower2" placeholder="2体目の戦闘力" />
-      <input type="number" id="battlePower3" placeholder="3体目の戦闘力" />
-      <input type="number" id="battlePower4" placeholder="4体目の戦闘力" />
-      <input type="number" id="battlePower5" placeholder="5体目の戦闘力" />
+<div class="dashboard hidden" id="dash-local">
+  <div class="summary-row">
+    <div class="stat-card"><div class="value" id="l-total">-</div><div class="label">ワールド数</div></div>
+    <div class="stat-card domination"><div class="value" id="l-dom">-</div><div class="rate" id="l-dom-rate"></div><div class="label">制覇(21城)</div></div>
+    <div class="stat-card monopoly"><div class="value" id="l-mono">-</div><div class="rate" id="l-mono-rate"></div><div class="label">独占(5城)</div></div>
+    <div class="stat-card oligopoly"><div class="value" id="l-oligo">-</div><div class="rate" id="l-oligo-rate"></div><div class="label">寡占(3-4城)</div></div>
+    <div class="stat-card contested"><div class="value" id="l-cont">-</div><div class="rate" id="l-cont-rate"></div><div class="label">分散</div></div>
+    <div class="stat-card"><div class="value" id="l-guilds">-</div><div class="label">ユニークギルド</div></div>
+  </div>
+  <div class="charts-row">
+    <div class="chart-card" style="overflow:auto;max-height:420px;"><h3>制覇・独占・寡占ワールド</h3><div id="l-side"></div></div>
+    <div class="chart-card"><h3>占有分布</h3><div class="chart-container"><canvas id="l-donut"></canvas></div></div>
+  </div>
+  <div class="table-card" id="l-domCard"><h3><span style="color:var(--domination);">👑 制覇</span> <span id="l-domC"></span></h3><div class="table-wrap" style="max-height:400px;"><table><thead><tr><th>World</th><th>制覇ギルド</th><th>城数</th></tr></thead><tbody id="l-domB"></tbody></table></div></div>
+  <div class="table-card"><h3><span style="color:var(--monopoly);">🔴 独占</span> <span id="l-monoC"></span></h3><div class="table-wrap" style="max-height:400px;"><table><thead><tr><th>World</th><th>独占ギルド</th><th>ブラッセル</th><th>ウィスケルケー</th><th>モダーヴ</th><th>シメイ</th><th>グラベンスティン</th></tr></thead><tbody id="l-monoB"></tbody></table></div></div>
+  <div class="table-card"><h3><span style="color:var(--oligopoly);">🟠 寡占</span> <span id="l-oligoC"></span> <span style="font-size:.72rem;font-weight:400;margin-left:1rem;color:var(--text-dim);">凡例: <span style="color:var(--oligo-a);font-weight:700;">■寡占</span> <span style="color:var(--oligo-b);font-weight:700;margin-left:.4rem;">■他B</span> <span style="color:var(--oligo-c);font-weight:700;margin-left:.4rem;">■他C</span></span></h3><div class="table-wrap" style="max-height:400px;"><table><thead><tr><th>World</th><th>最多ギルド</th><th>数</th><th>ブラッセル</th><th>ウィスケルケー</th><th>モダーヴ</th><th>シメイ</th><th>グラベンスティン</th></tr></thead><tbody id="l-oligoB"></tbody></table></div></div>
+  <div class="table-card"><h3>全ワールド一覧</h3><div class="filter-row"><input type="text" id="l-fG" placeholder="ギルド名 / ワールド番号で検索…" oninput="renderLT()"><select id="l-fS" onchange="renderLT()"><option value="all">全て</option><option value="domination">制覇</option><option value="monopoly">独占</option><option value="oligopoly">寡占</option><option value="contested">分散</option></select></div><div class="table-wrap"><table><thead><tr><th>World</th><th>状態</th><th>ブラッセル</th><th>ウィスケルケー</th><th>モダーヴ</th><th>シメイ</th><th>グラベンスティン</th><th>支配ギルド</th></tr></thead><tbody id="l-tB"></tbody></table></div></div>
+</div>
+
+<!-- グランドバトル -->
+
+<div class="dashboard hidden" id="dash-global">
+  <div class="global-filter-bar">
+    <label>ワールド</label><input type="text" id="gf-world" placeholder="例: 127" oninput="renderG()" style="width:80px;">
+    <label>クラス</label><select id="gf-cls" onchange="renderG()"><option value="all">全て</option></select>
+  </div>
+  <div class="summary-row">
+    <div class="stat-card"><div class="value" id="g-total">-</div><div class="label">ブロック数</div></div>
+    <div class="stat-card domination"><div class="value" id="g-dom">-</div><div class="rate" id="g-dom-rate"></div><div class="label">制覇(21城)</div></div>
+    <div class="stat-card monopoly"><div class="value" id="g-mono">-</div><div class="rate" id="g-mono-rate"></div><div class="label">独占(5城)</div></div>
+    <div class="stat-card oligopoly"><div class="value" id="g-oligo">-</div><div class="rate" id="g-oligo-rate"></div><div class="label">寡占(3-4城)</div></div>
+    <div class="stat-card contested"><div class="value" id="g-cont">-</div><div class="rate" id="g-cont-rate"></div><div class="label">分散</div></div>
+    <div class="stat-card"><div class="value" id="g-guilds">-</div><div class="label">ユニークギルド</div></div>
+  </div>
+  <div class="charts-row">
+    <div class="chart-card" style="overflow:auto;max-height:420px;"><h3>制覇・独占・寡占ブロック</h3><div id="g-side"></div></div>
+    <div class="chart-card"><h3>占有分布</h3><div class="chart-container"><canvas id="g-donut"></canvas></div></div>
+  </div>
+  <div class="table-card" id="g-domCard"><h3><span style="color:var(--domination);">👑 制覇</span> <span id="g-domC"></span></h3><div class="table-wrap" style="max-height:400px;"><table><thead><tr><th class="srv-col">サーバー</th><th>ワールド</th><th>クラス</th><th>制覇ギルド</th><th>城数</th></tr></thead><tbody id="g-domB"></tbody></table></div></div>
+  <div class="table-card"><h3><span style="color:var(--monopoly);">🔴 独占</span> <span id="g-monoC"></span></h3><div class="table-wrap" style="max-height:400px;"><table><thead><tr><th class="srv-col">サーバー</th><th>ワールド</th><th>クラス</th><th>独占ギルド</th><th>アイン</th><th>イエソド</th><th>マルクト</th><th>ケテル</th><th>テファレト</th></tr></thead><tbody id="g-monoB"></tbody></table></div></div>
+  <div class="table-card"><h3><span style="color:var(--oligopoly);">🟠 寡占</span> <span id="g-oligoC"></span> <span style="font-size:.72rem;font-weight:400;margin-left:1rem;color:var(--text-dim);">凡例: <span style="color:var(--oligo-a);font-weight:700;">■寡占</span> <span style="color:var(--oligo-b);font-weight:700;margin-left:.4rem;">■他B</span> <span style="color:var(--oligo-c);font-weight:700;margin-left:.4rem;">■他C</span></span></h3><div class="table-wrap" style="max-height:400px;"><table><thead><tr><th class="srv-col">サーバー</th><th>ワールド</th><th>クラス</th><th>最多ギルド</th><th>数</th><th>アイン</th><th>イエソド</th><th>マルクト</th><th>ケテル</th><th>テファレト</th></tr></thead><tbody id="g-oligoB"></tbody></table></div></div>
+  <div class="table-card"><h3>全ブロック一覧</h3><div class="filter-row"><input type="text" id="g-fG" placeholder="ギルド名 / ワールド番号で検索…" oninput="renderGT()"><select id="g-fS" onchange="renderGT()"><option value="all">全て</option><option value="domination">制覇</option><option value="monopoly">独占</option><option value="oligopoly">寡占</option><option value="contested">分散</option></select></div><div class="table-wrap"><table><thead><tr><th class="srv-col">サーバー</th><th>ワールド</th><th>クラス</th><th>状態</th><th>アイン</th><th>イエソド</th><th>マルクト</th><th>ケテル</th><th>テファレト</th><th>支配ギルド</th></tr></thead><tbody id="g-tB"></tbody></table></div></div>
+</div>
+
+<!-- 占有ヒートマップ -->
+
+<div class="dashboard hidden" id="dash-heatmap">
+  <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem;flex-wrap:wrap;">
+    <div class="hm-view-toggle">
+      <button class="hm-view-btn active" onclick="setHMView('compact')" id="hm-btn-compact">一覧</button>
+      <button class="hm-view-btn" onclick="setHMView('normal')" id="hm-btn-normal">通常</button>
+      <button class="hm-view-btn" onclick="toggleHMCenter()" id="hm-btn-center">🏰 中央拠点</button>
     </div>
-
-    <button onclick="diagnose()"><span class="material-icons">insights</span>診断する</button>
-
-    <div class="options" id="options" style="display: none;">
-      <label><input type="checkbox" id="includeDetails" checked> 戦闘力を含めてシェアする</label>
+    <span style="font-size:.7rem;color:var(--text-dim);" id="hm-visCount">175件</span>
+    <button class="hm-filter-toggle" onclick="toggleHMFilter()">⚙ フィルタ</button>
+    <button id="hm-stock-bar-btn" onclick="hmToggleStockBar()"
+      style="font-family:'Noto Sans JP',sans-serif;font-size:.75rem;padding:.3rem .7rem;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-dim);cursor:pointer;transition:all .15s;margin-left:auto;"
+      title="ギルドストック表示の切替">
+      📦 ギルドストック表示
+    </button>
+  </div>
+  <table class="hm-summary-table" id="hm-summary-table">
+    <thead><tr><th>状態</th><th>件数</th><th>構成比</th></tr></thead>
+    <tbody id="hm-summary-body"></tbody>
+  </table>
+  <div class="hm-controls collapsed" id="hm-controls">
+    <div class="hm-controls-grid" style="grid-template-columns:1fr 1fr;">
+      <div class="hm-field">
+        <div class="hm-range-row"><span>最小占有率</span><span id="hm-rangeVal">0%</span></div>
+        <input id="hm-minRate" type="range" min="0" max="100" step="1" value="0" oninput="renderHM()">
+      </div>
+      <div class="hm-field">
+        <label>並び順</label>
+        <select id="hm-sort" class="hm-select" onchange="renderHM()">
+          <option value="wid-asc">ワールド 昇順</option>
+          <option value="wid-desc">ワールド 降順</option>
+          <option value="rate-desc">占有率 高い順</option>
+          <option value="rate-asc">占有率 低い順</option>
+          <option value="stock-desc">ギルドストック 高い順</option>
+          <option value="stock-asc">ギルドストック 低い順</option>
+          <option value="combo-desc">占有×活動 高い順</option>
+        </select>
+      </div>
     </div>
-
-    <div id="output" class="result" style="display:none;"></div>
-    
-    <!-- FGIマップ表示エリア -->
-    <div id="fgi_map" style="display:none;"></div>
-    
-    <!-- シェアエリア -->
-    <div id="share_area" style="display:none;">
-      <div id="share" class="share"></div>
+    <!-- 統合凡例：占有率とギルドストックを横並び -->
+    <div class="hm-legend-combined">
+      <div class="hm-legend-item">
+        <span class="hm-legend-label">占有率</span>
+        <div class="hm-legend-bar-wrap">
+          <span class="hm-legend-edge">分散</span>
+          <div class="hm-legend-bar"></div>
+          <span class="hm-legend-edge">独占</span>
+        </div>
+      </div>
+      <div class="hm-legend-item" id="hm-stock-label-row">
+        <span class="hm-legend-label">ギルドストック</span>
+        <div class="hm-legend-bar-wrap">
+          <span class="hm-legend-edge">低</span>
+          <div style="height:6px;border-radius:99px;background:linear-gradient(90deg,#1e1e1e,#484848,#7a7a7a,#b0b0b0,#ffffff);border:1px solid rgba(255,255,255,.08);flex:1;"></div>
+          <span class="hm-legend-edge">高</span>
+        </div>
+      </div>
     </div>
   </div>
-
-  <div class="container" id="fgi_info">
-    <h2>ランクとFGIに関する補足情報</h2>
-    
-    <div id="additional_info">
-      <p id="next_rank_info"></p>
-      <p id="next_style_info"></p>
+  <div id="hm-stock-legend" style="padding:.35rem 1.5rem .4rem;font-size:.68rem;display:none;gap:.7rem;align-items:center;flex-wrap:wrap;">
+    <span style="color:var(--text-dim);font-weight:700">ギルドストック:</span>
+    <span style="display:flex;align-items:center;gap:.3rem"><span style="display:inline-block;width:20px;height:5px;background:#1e1e1e;border-radius:2px;border:1px solid rgba(255,255,255,.3);vertical-align:middle"></span><span style="color:var(--text-dim)">低</span></span>
+    <span style="display:flex;align-items:center;gap:.3rem"><span style="display:inline-block;width:20px;height:5px;background:#484848;border-radius:2px;border:1px solid rgba(255,255,255,.3);vertical-align:middle"></span><span style="color:var(--text-dim)">やや低</span></span>
+    <span style="display:flex;align-items:center;gap:.3rem"><span style="display:inline-block;width:20px;height:5px;background:#7a7a7a;border-radius:2px;border:1px solid rgba(255,255,255,.3);vertical-align:middle"></span><span style="color:var(--text-dim)">中</span></span>
+    <span style="display:flex;align-items:center;gap:.3rem"><span style="display:inline-block;width:20px;height:5px;background:#b0b0b0;border-radius:2px;border:1px solid rgba(255,255,255,.3);vertical-align:middle"></span><span style="color:var(--text-dim)">やや高</span></span>
+    <span style="display:flex;align-items:center;gap:.3rem"><span style="display:inline-block;width:20px;height:5px;background:#ffffff;border-radius:2px;border:1px solid rgba(255,255,255,.3);vertical-align:middle"></span><span style="color:var(--text-dim)">高</span></span>
+  </div>
+  <div class="hm-grid" id="hm-grid"></div>
+  <div class="hm-date-spacer"></div>
+</div>
+<!-- 採用属性分布 -->
+<div class="dashboard hidden" id="dash-arena">
+  <div class="controls" style="border-bottom:1px solid var(--border);padding:.5rem 1.2rem;flex-wrap:wrap;gap:.4rem .6rem;align-items:center;">
+    <label style="color:var(--text-dim);font-size:.78rem;white-space:nowrap;flex-shrink:0">📊 バトリ20位（5キャラ編成）</label>
+    <label style="white-space:nowrap;flex-shrink:0;font-size:.85rem;color:var(--text-dim)">ソート:</label>
+    <select id="a-sort" onchange="arenaRender()" style="font-family:'Noto Sans JP',sans-serif;font-size:.85rem;padding:.4rem .6rem;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);min-width:0;flex:1;">
+      <option value="wid-asc">ワールド 昇順</option>
+      <option value="wid-desc">ワールド 降順</option>
+      <option value="ai-desc">藍 高い順</option>
+      <option value="ai-asc">藍 低い順</option>
+      <option value="ku-desc">紅 高い順</option>
+      <option value="ku-asc">紅 低い順</option>
+      <option value="sui-desc">翠 高い順</option>
+      <option value="sui-asc">翠 低い順</option>
+      <option value="ki-desc">黄 高い順</option>
+      <option value="ki-asc">黄 低い順</option>
+      <option value="ten-desc">天 高い順</option>
+      <option value="ten-asc">天 低い順</option>
+      <option value="mei-desc">冥 高い順</option>
+      <option value="mei-asc">冥 低い順</option>
+    </select>
+  </div>
+  <div class="dashboard" style="padding:1rem 2rem .5rem;gap:.8rem;">
+    <div class="summary-row">
+      <div class="stat-card"><div class="value" id="a-worlds">-</div><div class="label">Worlds</div></div>
+      <div class="stat-card ai" ><div class="value" id="a-ai" >-</div><div class="label">藍 avg</div></div>
+      <div class="stat-card ku" ><div class="value" id="a-ku" >-</div><div class="label">紅 avg</div></div>
+      <div class="stat-card sui"><div class="value" id="a-sui">-</div><div class="label">翠 avg</div></div>
+      <div class="stat-card ki" ><div class="value" id="a-ki" >-</div><div class="label">黄 avg</div></div>
+      <div class="stat-card ten"><div class="value" id="a-ten">-</div><div class="label">天 avg</div></div>
+      <div class="stat-card mei"><div class="value" id="a-mei">-</div><div class="label">冥 avg</div></div>
     </div>
-
-    <div id="rank_definitions">
-      <h3>ランクの定義</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>ランク</th>
-            <th>レベルリンク戦闘力範囲</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>SS</td>
-            <td>60億以上</td>
-          </tr>
-          <tr>
-            <td>S</td>
-            <td>30億～60億未満</td>
-          </tr>
-          <tr>
-            <td>A</td>
-            <td>10億～30億未満</td>
-          </tr>
-          <tr>
-            <td>B</td>
-            <td>5億～10億未満</td>
-          </tr>
-          <tr>
-            <td>C</td>
-            <td>5億未満</td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="arena-dom-bar-wrap">
+      <span style="font-size:.7rem;color:var(--text-dim);font-weight:600;white-space:nowrap;">支配属性:</span>
+      <div class="arena-dom-bar" id="a-dom-bar"></div>
+      <div class="arena-dom-legend" id="a-dom-legend"></div>
     </div>
-
-    <div id="fgi_details">
+    <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;">
+      <div class="hm-view-toggle">
+        <button class="hm-view-btn active" id="a-vb-compact" onclick="arenaSetView('compact')">一覧</button>
+        <button class="hm-view-btn"        id="a-vb-normal"  onclick="arenaSetView('normal')">通常</button>
+        <button class="hm-view-btn"        id="a-vb-table"   onclick="arenaSetView('table')">テーブル</button>
+      </div>
+      <span style="font-size:.7rem;color:var(--text-dim);" id="a-vis-count">-件</span>
     </div>
-
-    <div>
-      <h3>参考記事：</h3>
-      <p>
-        <a href="https://ripple-hollyhock-906.notion.site/3-2b4532bfa0848126bd10c30d87691cbf" target="_blank">
-          【育成スタイル診断】あなたの育成スタイルは？
-        </a>
-      </p>
+    <div id="a-grid" class="hm-grid hm-compact"></div>
+    <div class="table-card hidden" id="a-table-card">
+      <div class="table-wrap"><table id="a-table"></table></div>
     </div>
   </div>
+  <div class="hm-date-spacer"></div>
+</div>
 
-  <div>
-    <p>
-      created by 
-      <a href="https://x.com/harupo_meme" target="_blank">@harupo_meme</a>
-    </p>
+
+<div class="hm-date-bar hidden" id="hm-date-bar">
+  <div class="hm-date-row">
+    <div class="hm-date-nav"><button id="hm-date-prev" onclick="hmDateStep(-1)">◀</button></div>
+    <input type="range" class="hm-date-slider" id="hm-date-slider" min="0" max="0" value="0" oninput="hmDateChange()">
+    <div class="hm-date-nav"><button id="hm-date-next" onclick="hmDateStep(1)">▶</button></div>
+    <span class="hm-date-value" id="hm-date-value">-</span>
+    <span class="hm-date-tag" id="hm-date-tag"></span>
+    <button class="hm-play-btn" id="hm-play-btn" onclick="hmPlayToggle()" style="margin-left:.4rem;">▶</button>
+    <div class="hm-speed-btns" style="margin-left:.2rem;">
+      <button class="hm-speed-btn" onclick="hmSetSpeed(1300)">0.5x</button>
+      <button class="hm-speed-btn active" onclick="hmSetSpeed(650)">1x</button>
+      <button class="hm-speed-btn" onclick="hmSetSpeed(325)">2x</button>
+      <button class="hm-speed-btn" onclick="hmSetSpeed(160)">4x</button>
+    </div>
   </div>
+  <div class="hm-date-spacer"></div>
+</div>
 
-  <script src="script.js"></script>
+<!-- ラメント一覧 -->
+<div class="dashboard hidden" id="dash-lament" style="padding:1rem 1.5rem 3rem;">
+  <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;margin-bottom:.8rem;padding-bottom:.6rem;border-bottom:1px solid var(--border);">
+    <span style="font-size:.85rem;font-weight:700;color:var(--text-dim);">🎵 ラメント一覧</span>
+    <input id="lament-search" type="text" placeholder="キャラ名・曲名・アーティストで検索…"
+      oninput="renderLament()"
+      style="font-family:'Noto Sans JP',sans-serif;font-size:.82rem;padding:.35rem .7rem;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);flex:1;min-width:180px;max-width:320px;">
+    <div style="display:flex;gap:4px;flex-wrap:wrap;" id="lament-attr-btns">
+      <button class="lament-attr-btn active" data-attr="all" onclick="lamentSetAttr('all')" style="font-family:'Noto Sans JP',sans-serif;font-size:.72rem;font-weight:700;padding:.28rem .65rem;border-radius:5px;border:1px solid var(--border);background:var(--accent);color:#fff;cursor:pointer;">全て</button>
+      <button class="lament-attr-btn" data-attr="藍" onclick="lamentSetAttr('藍')" style="font-family:'Noto Sans JP',sans-serif;font-size:.72rem;font-weight:700;padding:.28rem .65rem;border-radius:5px;border:1px solid var(--border);background:var(--bg-card);color:var(--c-ai);cursor:pointer;">藍</button>
+      <button class="lament-attr-btn" data-attr="紅" onclick="lamentSetAttr('紅')" style="font-family:'Noto Sans JP',sans-serif;font-size:.72rem;font-weight:700;padding:.28rem .65rem;border-radius:5px;border:1px solid var(--border);background:var(--bg-card);color:var(--c-ku);cursor:pointer;">紅</button>
+      <button class="lament-attr-btn" data-attr="翠" onclick="lamentSetAttr('翠')" style="font-family:'Noto Sans JP',sans-serif;font-size:.72rem;font-weight:700;padding:.28rem .65rem;border-radius:5px;border:1px solid var(--border);background:var(--bg-card);color:var(--c-sui);cursor:pointer;">翠</button>
+      <button class="lament-attr-btn" data-attr="黄" onclick="lamentSetAttr('黄')" style="font-family:'Noto Sans JP',sans-serif;font-size:.72rem;font-weight:700;padding:.28rem .65rem;border-radius:5px;border:1px solid var(--border);background:var(--bg-card);color:var(--c-ki);cursor:pointer;">黄</button>
+      <button class="lament-attr-btn" data-attr="天" onclick="lamentSetAttr('天')" style="font-family:'Noto Sans JP',sans-serif;font-size:.72rem;font-weight:700;padding:.28rem .65rem;border-radius:5px;border:1px solid var(--border);background:var(--bg-card);color:var(--c-ten);cursor:pointer;">天</button>
+      <button class="lament-attr-btn" data-attr="冥" onclick="lamentSetAttr('冥')" style="font-family:'Noto Sans JP',sans-serif;font-size:.72rem;font-weight:700;padding:.28rem .65rem;border-radius:5px;border:1px solid var(--border);background:var(--bg-card);color:var(--c-mei);cursor:pointer;">冥</button>
+    </div>
+    <span style="font-size:.72rem;color:var(--text-dim);margin-left:auto;" id="lament-count"></span>
+  </div>
+  <div class="table-wrap" style="max-height:calc(100vh - 200px);">
+    <table id="lament-table" style="width:100%;border-collapse:collapse;font-size:.82rem;">
+      <thead>
+        <tr>
+          <th style="position:sticky;top:0;background:#1a1a26;padding:.5rem .7rem;text-align:left;font-weight:600;color:var(--text-dim);border-bottom:2px solid var(--border);white-space:nowrap;cursor:pointer;" onclick="lamentSort('attr')">属性</th>
+          <th style="position:sticky;top:0;background:#1a1a26;padding:.5rem .7rem;text-align:left;font-weight:600;color:var(--text-dim);border-bottom:2px solid var(--border);white-space:nowrap;cursor:pointer;" onclick="lamentSort('char')">キャラクター</th>
+          <th style="position:sticky;top:0;background:#1a1a26;padding:.5rem .7rem;text-align:left;font-weight:600;color:var(--text-dim);border-bottom:2px solid var(--border);white-space:nowrap;cursor:pointer;" onclick="lamentSort('ja')">日本語タイトル</th>
+          <th style="position:sticky;top:0;background:#1a1a26;padding:.5rem .7rem;text-align:left;font-weight:600;color:var(--text-dim);border-bottom:2px solid var(--border);white-space:nowrap;cursor:pointer;" onclick="lamentSort('en')">English Title</th>
+          <th style="position:sticky;top:0;background:#1a1a26;padding:.5rem .7rem;text-align:left;font-weight:600;color:var(--text-dim);border-bottom:2px solid var(--border);white-space:nowrap;">アーティスト</th>
+          <th style="position:sticky;top:0;background:#1a1a26;padding:.5rem .7rem;text-align:center;font-weight:600;color:var(--text-dim);border-bottom:2px solid var(--border);white-space:nowrap;">MV 日</th>
+          <th style="position:sticky;top:0;background:#1a1a26;padding:.5rem .7rem;text-align:center;font-weight:600;color:var(--text-dim);border-bottom:2px solid var(--border);white-space:nowrap;">MV EN</th>
+        </tr>
+      </thead>
+      <tbody id="lament-tbody"></tbody>
+    </table>
+  </div>
+  <div style="margin-top:.8rem;font-size:.68rem;color:var(--text-dim);line-height:1.6;">
+    ※ 英語タイトルはYouTube公式MV・CDに基づきます。最新キャラは随時追加予定。
+  </div>
+</div>
+
+<div class="hm-date-bar hidden" id="local-date-bar">
+  <div class="hm-date-row">
+    <div class="hm-date-nav"><button id="local-date-prev" onclick="localDateStep(-1)">◀</button></div>
+    <input type="range" class="hm-date-slider" id="local-date-slider" min="0" max="0" value="0" oninput="localDateChange()">
+    <div class="hm-date-nav"><button id="local-date-next" onclick="localDateStep(1)">▶</button></div>
+    <span class="hm-date-value" id="local-date-value">-</span>
+    <span class="hm-date-tag" id="local-date-tag"></span>
+    <button class="hm-play-btn" id="local-play-btn" onclick="localPlayToggle()" style="margin-left:.4rem;">▶</button>
+    <div class="hm-speed-btns" style="margin-left:.2rem;">
+      <button class="hm-speed-btn" onclick="localSetSpeed(1300)">0.5x</button>
+      <button class="hm-speed-btn active" onclick="localSetSpeed(650)">1x</button>
+      <button class="hm-speed-btn" onclick="localSetSpeed(325)">2x</button>
+      <button class="hm-speed-btn" onclick="localSetSpeed(160)">4x</button>
+    </div>
+  </div>
+  <div class="hm-date-spacer"></div>
+</div>
+
+<div class="hm-date-bar hidden" id="global-date-bar">
+  <div class="hm-date-row">
+    <div class="hm-date-nav"><button id="global-date-prev" onclick="globalDateStep(-1)">◀</button></div>
+    <input type="range" class="hm-date-slider" id="global-date-slider" min="0" max="0" value="0" oninput="globalDateChange()">
+    <div class="hm-date-nav"><button id="global-date-next" onclick="globalDateStep(1)">▶</button></div>
+    <span class="hm-date-value" id="global-date-value">-</span>
+    <span class="hm-date-tag" id="global-date-tag"></span>
+    <button class="hm-play-btn" id="global-play-btn" onclick="globalPlayToggle()" style="margin-left:.4rem;">▶</button>
+    <div class="hm-speed-btns" style="margin-left:.2rem;">
+      <button class="hm-speed-btn" onclick="globalSetSpeed(1300)">0.5x</button>
+      <button class="hm-speed-btn active" onclick="globalSetSpeed(650)">1x</button>
+      <button class="hm-speed-btn" onclick="globalSetSpeed(325)">2x</button>
+      <button class="hm-speed-btn" onclick="globalSetSpeed(160)">4x</button>
+    </div>
+  </div>
+  <div class="hm-date-spacer"></div>
+</div>
+
+<div class="hm-date-bar hidden" id="arena-date-bar">
+  <div class="hm-date-row">
+    <div class="hm-date-nav"><button id="a-date-prev" onclick="arenaDateStep(-1)">◀</button></div>
+    <input type="range" class="hm-date-slider" id="a-date-slider" min="0" max="0" value="0" oninput="arenaDateChange()">
+    <div class="hm-date-nav"><button id="a-date-next" onclick="arenaDateStep(1)">▶</button></div>
+    <span class="hm-date-value" id="a-date-value">-</span>
+    <span class="hm-date-tag"   id="a-date-tag"></span>
+  </div>
+  <div class="hm-play-row">
+    <button class="hm-play-btn" id="a-play-btn" onclick="arenaPlayToggle()">▶ 再生</button>
+    <span class="hm-speed-label">速度</span>
+    <div class="hm-speed-btns">
+      <button class="hm-speed-btn" onclick="arenaSetSpeed(1300)">0.5x</button>
+      <button class="hm-speed-btn active" onclick="arenaSetSpeed(650)">1x</button>
+      <button class="hm-speed-btn" onclick="arenaSetSpeed(325)">2x</button>
+      <button class="hm-speed-btn" onclick="arenaSetSpeed(160)">4x</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="hm-back-btn hidden" id="hm-back-btn">
+  <button onclick="hmBackToHeatmap()">◀ ヒートマップに戻る</button>
+</div>
+<div class="hm-back-to-compact hidden" id="hm-back-compact-btn">
+  <button onclick="hmBackToCompact()">◀ 一覧に戻る</button>
+</div>
+<div class="arena-back-btn hidden" id="arena-back-btn">
+  <button onclick="arenaBackToGrid()">◀ 一覧に戻る</button>
+</div>
+<div class="hm-back-to-compact hidden" id="stock-back-compact-btn" style="bottom:130px;">
+  <button onclick="stockBackToCompact()">◀ 一覧に戻る</button>
+</div>
+<div class="wf-float hidden" id="wf-float"><div class="wf-label"><span id="wf-name"></span>で<br>フィルタ中</div><button onclick="clearWF()">フィルタ解除</button></div>
+
+<script>
+
+// ═══════════════════════════════
+// ラメント一覧データ（キャラクターリスト.xlsx属性準拠）
+// ═══════════════════════════════
+const LAMENT_DATA = [
+  // ── 藍属性 ──────────────────────────────────────────
+  {attr:'藍', char:'モニカ',        ja:'うらぎりもの',            en:'Traitor',                             artist:'rionos',         yt:'https://youtu.be/Qm4WE5Ff1C4', yt_en:'https://youtu.be/EuKrRPyNlcs'},
+  {attr:'藍', char:'イリア',        ja:'燐光',                   en:'Phosphorescence',                     artist:'Daoko',          yt:'https://youtu.be/jtWi-YekQAc', yt_en:'https://youtu.be/IzXB0GI75vY'},
+  {attr:'冥', char:'冥イリア',      ja:'Allure of the Dark',     en:'Allure of the Dark',                  artist:'Daoko',          yt:'', yt_en:'https://youtu.be/gu7T0D50wFk', },
+  {attr:'藍', char:'アイリス',      ja:'Twilight',               en:'Twilight',                            artist:'Hakubi',         yt:'https://youtu.be/bUg9QYX7KzI', yt_en:'https://youtu.be/tEOCTijgGF0'},
+  {attr:'藍', char:'ロキ',          ja:'believe',                en:'believe',                             artist:'上野優華',        yt:'https://youtu.be/Kz3q8nrSfgg', yt_en:''},
+  {attr:'藍', char:'ソルティーナ',  ja:'くま',                   en:'Bear',                                artist:'コレサワ',        yt:'https://youtu.be/HvKgK8B8oeU', yt_en:''},
+  {attr:'藍', char:'アムレート',    ja:'outcry',                 en:'outcry',                              artist:'あたらよ',        yt:'https://youtu.be/dKSNz3GGr9U', yt_en:'https://youtu.be/ZxpFRuQ_vRo'},
+  {attr:'藍', char:'フェンリル',    ja:'宝物はひとつだけあればいい', en:"I Only Need One Treasure",          artist:'鹿乃',           yt:'https://youtu.be/Wf4c6QPYFyE', yt_en:'https://youtu.be/gJbHVIZLEEY'},
+  {attr:'藍', char:'フローレンス',  ja:'Flag',                   en:'Flag',                                artist:'Wakana',         yt:'https://youtu.be/3E3v-SdxVW0', yt_en:'https://youtu.be/HtcKJSKNluU'},
+  {attr:'藍', char:'ソーニャ',      ja:'熱情のエッダ',            en:'Passionate Edda',                     artist:'みゆはん',        yt:'https://youtu.be/8SY-gMKkkNM', yt_en:'https://youtu.be/bNmHv-yAzaA'},
+  {attr:'藍', char:'モーザ',        ja:'Dokie Doggy Night',      en:'Dokie Doggy Night',                   artist:'+α/あるふぁきゅん。', yt:'https://youtu.be/74Mwmx2TDKo', yt_en:'https://youtu.be/tBjZ3f8SRMQ'},
+  {attr:'藍', char:'シヴィ',        ja:'旅人へ',                 en:'To the Traveler',                     artist:'',               yt:'https://youtu.be/H1MjRSTI_Gc', yt_en:''},
+  {attr:'藍', char:'ステラ',        ja:'玩具の呪文',              en:"Toy's Spell",                         artist:'ろん',               yt:'', yt_en:''},
+  {attr:'翠', char:'翠ステラ',      ja:'ちっちゃな革命',          en:'Little Revolution',                   artist:'',               yt:'', yt_en:''},
+  {attr:'藍', char:'エイル',        ja:'Twilight Crack',         en:'Twilight Crack',                      artist:'Eye',            yt:'https://youtu.be/XfQdFRRxsMg', yt_en:''},
+  {attr:'藍', char:'エヴリン',      ja:'Prism',                  en:'Prism',                               artist:'',               yt:'', yt_en:''},
+  {attr:'藍', char:'ギルウィアル',  ja:'疎ましい芸術',            en:'Despised Art',                        artist:'Lucia',               yt:'', yt_en:''},
+  {attr:'藍', char:'フェーネ',      ja:'By My Side',             en:'By My Side',                          artist:'大塚理乃',               yt:'', yt_en:''},
+  {attr:'藍', char:'ミナシュマリ',  ja:'Fox Hunt',               en:'Fox Hunt',                            artist:'こはならむ',               yt:'', yt_en:''},
+  {attr:'藍', char:'セルリア',      ja:'ハナコトバ',              en:'Language of Flowers',                 artist:'',               yt:'', yt_en:''},
+  {attr:'藍', char:'リズ',          ja:'Song of Wind',           en:'Song of Wind',                        artist:'田村ゆかり',               yt:'', yt_en:''},
+  {attr:'藍', char:'ユリーカ',      ja:'Beyond the Journey',     en:'Beyond the Journey',                  artist:'',               yt:'', yt_en:''},
+  // ── 藍属性（バリアント）─────────────────────────────
+  {attr:'藍', char:'夏ニーナ',      ja:'きみがいる夏',            en:'Summer with You',                     artist:'芹澤優',          yt:'', yt_en:'https://youtu.be/gBmSb25QJXQ'},
+  {attr:'藍', char:'藍トロポン',    ja:"I Wish",                 en:'I Wish',                              artist:'maimie',          yt:'', yt_en:''},
+  {attr:'藍', char:'団長コルディ',  ja:'Step Right Up',          en:'Step Right Up',                       artist:'春奈るな',        yt:'', yt_en:''},
+  // ── 紅属性 ──────────────────────────────────────────
+  {attr:'紅', char:'シャーロット',  ja:'Clockwise',              en:'Clockwise',                           artist:'松田彩花',        yt:'https://youtu.be/NWv94LJc7wg', yt_en:''},
+  {attr:'紅', char:'アリアンロッド',ja:'モノクローム',            en:'Monochrome',                          artist:'ChouCho',         yt:'https://youtu.be/eCFuHnrYWZI', yt_en:'https://youtu.be/TY8UOLvpbe0'},
+  {attr:'紅', char:'テオドラ',      ja:'まっすぐ',               en:'Straight',                            artist:'清浦夏実(TWEEDEES)', yt:'https://youtu.be/chPG7zEJiIA', yt_en:''},
+  {attr:'紅', char:'ペトラ',        ja:'角',                     en:'Horn',                                artist:'新妻聖子',        yt:'https://youtu.be/KqolGPWPV5c', yt_en:''},
+  {attr:'紅', char:'サブリナ',      ja:'Call My Name',           en:'Call My Name',                        artist:'佐々木恵梨',      yt:'https://youtu.be/HqrLvPDjzzg', yt_en:'https://youtu.be/GJTrOaqpx4Y'},
+  {attr:'紅', char:'フレイシア',    ja:'さよなら',               en:'Goodbye',                             artist:'井上苑子',        yt:'https://youtu.be/CmJCome-P4o', yt_en:'https://youtu.be/4Z9xi6oRGyA'},
+  {attr:'紅', char:'アモール',      ja:'Étoile',                 en:'Étoile',                              artist:'霜月はるか',      yt:'https://youtu.be/3-wM0rDCqTA', yt_en:'https://youtu.be/ygEHW9kfmyA'},
+  {attr:'紅', char:'リーン',        ja:'篝火',                   en:'Bonfire',                             artist:'konoco',          yt:'https://youtu.be/JrMvOI0rw-o', yt_en:''},
+  {attr:'紅', char:'ベル',          ja:'怒涛',                   en:'Fury',                                artist:'96猫',            yt:'https://youtu.be/mRVi4SLs_sM', yt_en:'https://youtu.be/sGm8pO9Z5OY'},
+  {attr:'紅', char:'ディアン',      ja:'君への帰り道',            en:'The Way Home to You',                 artist:'ナミヒラアユコ',  yt:'https://youtu.be/zSpOxjeXoX8', yt_en:'https://youtu.be/d2LsJvuCsxQ'},
+  {attr:'紅', char:'ソフィア',      ja:'傘はささなくてもいい',    en:"You Don't Need to Open Your Umbrella", artist:'',              yt:'https://youtu.be/J_Ym8cYJjME', yt_en:'https://youtu.be/dzxHTVjBbQM'},
+  {attr:'紅', char:'シフォン',      ja:'なくしもの',             en:'Lost Things',                         artist:'',               yt:'', yt_en:''},
+  {attr:'紅', char:'アーティ',      ja:'Never Ends',             en:'Never Ends',                          artist:'',               yt:'', yt_en:''},
+  {attr:'紅', char:'プリシラ',      ja:'幻月環',                 en:'Phantom Moon Ring',                   artist:'wawa',               yt:'', yt_en:''},
+  {attr:'紅', char:'モルガナ',      ja:'Seek Light',             en:'Seek Light',                          artist:'成家ひかる',               yt:'https://youtu.be/eXUNbs_Krq8', yt_en:''},
+  {attr:'紅', char:'マチルダ',      ja:'光の海',                 en:'Ocean of Light',                      artist:'釘宮理恵',               yt:'', yt_en:''},
+  {attr:'紅', char:'ルシール',      ja:'Ruby',                   en:'Ruby',                                artist:'',               yt:'', yt_en:''},
+  {attr:'紅', char:'アルトリア',    ja:'Warrior (Radio Edit)',   en:'Warrior (Radio Edit)',                artist:'',               yt:'', yt_en:''},
+  {attr:'紅', char:'リーベ',        ja:'涙の国',                 en:'Land of Tears',                       artist:'',               yt:'', yt_en:''},
+  {attr:'紅', char:'フラック',      ja:'Rise and Smile',         en:'Rise and Smile',                      artist:'',               yt:'', yt_en:''},
+  // ── 紅属性（バリアント）─────────────────────────────
+  {attr:'紅', char:'夏コルディ',    ja:'ユリアザミ',             en:'Thistle',                             artist:'春奈るな',        yt:'', yt_en:'https://youtu.be/l8tGAyFouYY'},
+  {attr:'紅', char:'冬ソルティーナ',ja:'くま',                   en:'Bear',                                artist:'コレサワ',        yt:'', yt_en:''},
+  {attr:'紅', char:'春シズ',        ja:'花の終わり',             en:"Flowers' End",                        artist:'如月愛里',        yt:'', yt_en:''},
+  {attr:'紅', char:'アイシェ',      ja:'Regret',                 en:'Regret',                              artist:'',               yt:'', yt_en:''},
+  {attr:'紅', char:'リリコット',    ja:'Elegy',                  en:'Elegy',                               artist:'Sooda',          yt:'https://youtu.be/73kzL1qC7n4', yt_en:''},
+  // ── 翠属性 ──────────────────────────────────────────
+  {attr:'翠', char:'シズ',          ja:'花の跡',                 en:'After the Flowers',                   artist:'如月愛里',        yt:'https://youtu.be/U7ubbREX240', yt_en:'https://youtu.be/oXZp-MHCJFQ'},
+  {attr:'翠', char:'ザラ',          ja:'drowsiness',             en:'drowsiness',                          artist:'ヲタみん',        yt:'https://youtu.be/OZJxnEh7RwE', yt_en:'https://youtu.be/k_d6KCNjVFI'},
+  {attr:'翠', char:'ロザリー',      ja:'ラメント',               en:'Lament',                              artist:'山本彩',          yt:'https://youtu.be/iWMUX8mP6bc', yt_en:'https://youtu.be/u0KdTdYbwCQ'},
+  {attr:'翠', char:'リブラ',        ja:'真昼、空にオリオン',      en:'Orion at Noon',                       artist:'ENA',            yt:'https://youtu.be/K72uPVLDxcI', yt_en:'https://youtu.be/yBJf_gMiTek'},
+  {attr:'翠', char:'アイビー',      ja:'まっかっか',             en:'Red as Blood',                        artist:'葉月ゆら',        yt:'https://youtu.be/ZXA3x_hSrWk', yt_en:'https://youtu.be/NXtN3D0CRhc'},
+  {attr:'翠', char:'マーリン',      ja:'Fly Away',               en:'Fly Away',                            artist:'礼衣 (fromツユ)', yt:'https://youtu.be/8FwoXSje9EA', yt_en:'https://youtu.be/ZfijL3bDNuo'},
+  {attr:'藍', char:'藍マーリン',    ja:'Magic!',                 en:'Magic!',                              artist:'礼衣 (fromツユ)', yt:'', yt_en:''},
+  {attr:'翠', char:'コベル',        ja:'ひかる星',               en:'Shining Star',                        artist:'',               yt:'', yt_en:''},
+  {attr:'翠', char:'コルディ',      ja:'BLUE ROSE',              en:'BLUE ROSE',                           artist:'春奈るな',        yt:'https://youtu.be/tKQTkzrBeRk', yt_en:'https://youtu.be/k7sWclZQyMQ'},
+  {attr:'翠', char:'ニーナ',        ja:'困惑星旅行',             en:'Confusing Planet Trip',               artist:'芹澤優',          yt:'https://youtu.be/GcPRc0ArsU4', yt_en:'https://youtu.be/VWcMeRBqDq0'},
+  {attr:'翠', char:'メルティーユ',  ja:'世界中のすてきを',        en:'All the Lovely Things in the World',  artist:'西明日香',        yt:'https://youtu.be/1w5zmCLLBT0', yt_en:'https://youtu.be/FiOnLzs7Rpo'},
+  {attr:'翠', char:'ルーク',        ja:'Lone Star',              en:'Lone Star',                           artist:'平原綾香',        yt:'https://youtu.be/Dj2rLHzX4Zk', yt_en:'https://youtu.be/Gb1hq0OJpEE'},
+  {attr:'翠', char:'レア',          ja:'Fine Day',               en:'Fine Day',                            artist:'',               yt:'', yt_en:''},
+  {attr:'翠', char:'クラウディア',  ja:'Own Way',                en:'Own Way',                             artist:'SERRA',               yt:'', yt_en:''},
+  {attr:'翠', char:'フィアー',      ja:'Ash Pile',               en:'Ash Pile',                            artist:'天音',            yt:'https://youtu.be/czXpS9A-HsM', yt_en:'https://youtu.be/PGbnj6gMM6c'},
+  {attr:'翠', char:'ユニ',          ja:'Remedy',                 en:'Remedy',                              artist:'花澤里都夢',               yt:'', yt_en:''},
+  {attr:'翠', char:'ミラ',          ja:'Stuffed',                en:'Stuffed',                             artist:'甲田まひる',     yt:'https://youtu.be/Se0-SoNS2zU', yt_en:''},
+  {attr:'翠', char:'アレクサンドラ',ja:'アマガスミ',              en:'Hazy Rain',                           artist:'久保琴音',               yt:'', yt_en:'https://youtu.be/HyGwJpeLQwc'},
+  {attr:'翠', char:'ティリー',      ja:'Tears',                  en:'Tears',                               artist:'',               yt:'', yt_en:''},
+  {attr:'翠', char:'ポーラ',        ja:'Unfulfilled',            en:'Unfulfilled',                         artist:'',               yt:'', yt_en:''},
+  {attr:'翠', char:'D.D.',          ja:'Dummy',                  en:'Dummy',                               artist:'',               yt:'', yt_en:''},
+  {attr:'翠', char:'ユルディズ',    ja:'Killing Me or Kissing Me', en:'Killing Me or Kissing Me',          artist:'',               yt:'', yt_en:''},
+  // ── 翠属性（バリアント）─────────────────────────────
+  {attr:'翠', char:'夏サブリナ',    ja:'鼓動ふたつ鳴る前に',      en:'Before Two Heartbeats',               artist:'佐々木恵梨',      yt:'', yt_en:''},
+  {attr:'翠', char:'翠ルナリンド',  ja:'あたたかな雪の日',        en:'A Warm Snowy Day',                    artist:'本渡楓',          yt:'', yt_en:''},
+  // ── 黄属性 ──────────────────────────────────────────
+  {attr:'黄', char:'ガルム',        ja:'ポコ・ア・ポコ',          en:'Poco a Poco',                         artist:'ひかり',          yt:'https://youtu.be/be7fIr-bk8w', yt_en:'https://youtu.be/a1OKKy-7gP8'},
+  {attr:'黄', char:'スクルド',      ja:'Falling Down',           en:'Falling Down',                        artist:'mahina',          yt:'https://youtu.be/AXXsv_nqFDQ', yt_en:'https://youtu.be/6NrUJB5RQYU'},
+  {attr:'黄', char:'チェルナ',      ja:'CRYING BLUE',            en:'CRYING BLUE',                         artist:'小林真奈',        yt:'https://youtu.be/8YEsFAnqoiU', yt_en:'https://youtu.be/GC1VQgQaF-g'},
+  {attr:'黄', char:'ソテイラ',      ja:'時の狭間に流転するマカロン', en:'Macaron Drifting Through Time',    artist:'大原ゆい子',      yt:'https://youtu.be/sZDjOsVaX5g', yt_en:'https://youtu.be/e25Q4kJ0ib0'},
+  {attr:'黄', char:'ミミ',          ja:'12じの鐘がなる',          en:'The Clock Strikes 12',                artist:'市ノ瀬加那',      yt:'https://youtu.be/dCR6c07NMrM', yt_en:'https://youtu.be/G2n7JoPQx7U'},
+  {attr:'黄', char:'トロポン',      ja:"Liar's Lie",             en:"Liar's Lie",                          artist:'maimie',          yt:'https://youtu.be/YE2Y0QYTnk4', yt_en:'https://youtu.be/GidU1bhAyLs'},
+  {attr:'黄', char:'ハトホル',      ja:'黄昏の踊り場',            en:'Twilight Landing',                    artist:'柘榴-zakuro-',   yt:'https://youtu.be/Xf65ojG93kw', yt_en:'https://youtu.be/DCa9pQjobcM'},
+  {attr:'黄', char:'オリヴィエ',    ja:'Pray',                   en:'Pray',                                artist:'MARiA',           yt:'https://youtu.be/kh-zfD1u0Ks', yt_en:'https://youtu.be/Wwy8gOjO-6g'},
+  {attr:'黄', char:'プリマヴェーラ',ja:'リバーブ',               en:'Reverb',                              artist:'ダズビー',        yt:'https://youtu.be/bNDXaSg-Ofc', yt_en:''},
+  {attr:'黄', char:'カロル',        ja:'僕は僕でも僕じゃないかも', en:"Maybe I'm Not Really Me",            artist:'くろくも',        yt:'https://youtu.be/YmZnaYysaI8', yt_en:'https://youtu.be/zOdq0ERG8lg'},
+  {attr:'黄', char:'ウィーラ',      ja:'うたかた',               en:'Foam',                                artist:'',               yt:'', yt_en:'https://youtu.be/G9BTLvh0bkg'},
+  {attr:'黄', char:'リシェス',      ja:'Asking for the Moon',    en:'Asking for the Moon',                 artist:'',               yt:'', yt_en:'https://youtu.be/NIDdHMRDZbQ'},
+  {attr:'黄', char:'タマ',          ja:'Trick',                  en:'Trick',                               artist:'青妃らめ',        yt:'https://youtu.be/qDymW-zEmaU', yt_en:''},
+  {attr:'黄', char:'アサヒ',        ja:'No Name',                en:'No Name',                             artist:'Es',               yt:'', yt_en:''},
+  {attr:'黄', char:'ルスティカ',    ja:'One Last Song',          en:'One Last Song',                       artist:'',               yt:'', yt_en:''},
+  {attr:'黄', char:'ポプリ',        ja:'Echoes',                 en:'Echoes',                              artist:'',               yt:'', yt_en:''},
+  {attr:'黄', char:'ミフリ',        ja:'ゆびきり',               en:'Pinky Promise',                       artist:'',               yt:'', yt_en:'https://youtu.be/F7pPpFd34G0'},
+  {attr:'黄', char:'モワノー',      ja:'Off Script',             en:'Off Script',                          artist:'',               yt:'', yt_en:''},
+  // ── 黄属性（バリアント）─────────────────────────────
+  {attr:'黄', char:'黄アイリス',    ja:'Soumatou',               en:'Soumatou',                            artist:'',               yt:'', yt_en:''},
+  {attr:'黄', char:'夏モーザ',      ja:'Summer Flash',           en:'Summer Flash',                        artist:'',               yt:'', yt_en:''},
+  {attr:'黄', char:'聖アモール',    ja:'présent',                en:'présent',                             artist:'霜月はるか',      yt:'', yt_en:''},
+  {attr:'黄', char:'黄フェンリル',  ja:'数え切れないくらいの',    en:'Countless Treasures',                 artist:'鹿乃',            yt:'https://youtu.be/RzXwd50xjd8', yt_en:''},
+  {attr:'黄', char:'夏アムレート',  ja:'realize',                en:'realize',                             artist:'あたらよ',        yt:'', yt_en:''},
+  {attr:'黄', char:'メルラン',      ja:'Spark(Radio Edit)',      en:'Spark(Radio Edit)',                   artist:'',               yt:'', yt_en:''},
+  {attr:'黄', char:'トリクシー',    ja:'ことりばなし',           en:'Little Bird Story',                   artist:'かんのん',        yt:'', yt_en:''},
+  // ── 天属性 ──────────────────────────────────────────
+  {attr:'天', char:'ナターシャ',    ja:'X. THE FLOWER',          en:'X. THE FLOWER',                       artist:'小倉唯',          yt:'https://youtu.be/NxlMz77RW18', yt_en:'',  qlipha:true},
+  {attr:'天', char:'フォルティナ',  ja:'VI. THE SWORD ff',       en:'VI. THE SWORD ff',                    artist:'ゆかな',          yt:'', yt_en:'',                              qlipha:true},
+  {attr:'天', char:'ケルベロス',    ja:'IV. THE THUNDER',        en:'IV. THE THUNDER',                     artist:'',               yt:'', yt_en:'',                              qlipha:true},
+  {attr:'天', char:'ルサールカ',    ja:'III. THE RAIN',          en:'III. THE RAIN',                       artist:'',               yt:'', yt_en:'https://youtu.be/vCAJ-oe9iwM',                              qlipha:true},
+  {attr:'天', char:'エルフリンデ',  ja:'I. THE LANCE',           en:'I. THE LANCE',                        artist:'',               yt:'', yt_en:'',                              qlipha:true},
+  {attr:'天', char:'アイネ',        ja:'泡の音',                 en:'Sound of Bubbles',                    artist:'',               yt:'', yt_en:'https://youtu.be/QhgT_7sRXfo'},
+  {attr:'天', char:'メリア',        ja:'XIII. THE BUD',          en:'XIII. THE BUD',                       artist:'',               yt:'', yt_en:'',                              qlipha:true},
+  {attr:'天', char:'アイリーン',    ja:'ShyなDestiny',           en:'Shy Destiny',                         artist:'',               yt:'', yt_en:''},
+  {attr:'天', char:'ルミカ',        ja:'lumière',                en:'lumière',                             artist:'天音かなた',     yt:'', yt_en:''},
+  // ── 天属性（バリアント）─────────────────────────────
+  {attr:'天', char:'天ロザリー',    ja:'残影',                   en:'Afterimage',                          artist:'山本彩',          yt:'https://youtu.be/XPVqNeaplAg', yt_en:''},
+  {attr:'天', char:'天A.A.',        ja:'the trust',              en:'the trust',                           artist:'茅原実里',        yt:'', yt_en:'',                              },
+  {attr:'冥', char:'冥ナターシャ', ja:'the bouquet', en:'the bouquet',                          artist:'小倉唯',          yt:'', yt_en:'', },
+  {attr:'冥', char:'冥ケルベロス', ja:'the light',  en:'the light',                            artist:'',               yt:'', yt_en:''},
+  // ── 冥属性 ──────────────────────────────────────────
+  {attr:'天', char:'リヴェリア',    ja:'XV. THE SAND',           en:'XV. THE SAND',                        artist:'山根綺',         yt:'https://youtu.be/RSAUs3fnPOw', yt_en:'',     },
+  {attr:'冥', char:'ルナリンド',    ja:'IX. THE ICE',            en:'IX. THE ICE',                         artist:'本渡楓',          yt:'https://youtu.be/OuL8uWl9gjY', yt_en:'',  qlipha:true},
+  {attr:'冥', char:'ヴァルリーデ',  ja:'VIII. THE FIRE',         en:'VIII. THE FIRE',                      artist:'田中理恵',        yt:'https://youtu.be/CHWP4ALGyCE', yt_en:'',  qlipha:true},
+  {attr:'冥', char:'A.A.',          ja:'VII. THE RUST',          en:'VII. THE RUST',                       artist:'茅原実里',        yt:'https://youtu.be/mFdxKYSbgJY', yt_en:'https://youtu.be/FX15rPuTE4Y',  qlipha:true},
+  {attr:'冥', char:'オフィーリア',  ja:'V. THE CRYSTAL',         en:'V. THE CRYSTAL',                      artist:'',               yt:'', yt_en:'',                              qlipha:true},
+  {attr:'冥', char:'アームストロング',ja:'II. THE SOUL',          en:'II. THE SOUL',                        artist:'',               yt:'', yt_en:'',                              qlipha:true},
+  {attr:'冥', char:'パラデア',      ja:'XI. THE JUSTICE',        en:'XI. THE JUSTICE',                     artist:'',               yt:'', yt_en:'',                              qlipha:true},
+  {attr:'冥', char:'カグヤ',        ja:'XII. 夢幻',              en:'XII. Phantom Dream',                  artist:'',               yt:'', yt_en:'',                              qlipha:true},
+  {attr:'冥', char:'ネブラ',        ja:'XIV. THE BUBBLE',        en:'XIV. THE BUBBLE',                     artist:'',               yt:'', yt_en:'',                              },
+  {attr:'冥', char:'レジーナ',      ja:'頬に降る涙',             en:'Tears Falling on My Cheek',           artist:'',               yt:'', yt_en:''},
+  {attr:'冥', char:'カーミラ',      ja:'Sweet Bite',             en:'Sweet Bite',                          artist:'',               yt:'', yt_en:''},
+  // ── 冥属性（バリアント）─────────────────────────────
+];
+
+let _lamentAttr = 'all';
+let _lamentSortKey = 'attr';
+let _lamentSortDir = 1;
+
+const ATTR_COL = {藍:'var(--c-ai)',紅:'var(--c-ku)',翠:'var(--c-sui)',黄:'var(--c-ki)',天:'var(--c-ten)',冥:'var(--c-mei)'};
+
+function lamentSetAttr(attr){
+  _lamentAttr = attr;
+  document.querySelectorAll('.lament-attr-btn').forEach(b=>{
+    const isActive = b.dataset.attr === attr;
+    b.style.background = isActive ? 'var(--accent)' : 'var(--bg-card)';
+    b.style.color = isActive ? '#fff' : (ATTR_COL[b.dataset.attr] || 'var(--text-dim)');
+    b.style.borderColor = isActive ? 'var(--accent)' : 'var(--border)';
+  });
+  renderLament();
+}
+
+function lamentSort(key){
+  if(_lamentSortKey === key) _lamentSortDir *= -1;
+  else { _lamentSortKey = key; _lamentSortDir = 1; }
+  renderLament();
+}
+
+function renderLament(){
+  const q = (document.getElementById('lament-search')?.value || '').toLowerCase();
+  const ATTR_ORDER = {藍:0,紅:1,翠:2,黄:3,天:4,冥:5};
+  let data = LAMENT_DATA.filter(d=>{
+    if(_lamentAttr !== 'all' && d.attr !== _lamentAttr) return false;
+    if(q && !d.char.toLowerCase().includes(q) && !d.ja.toLowerCase().includes(q)
+         && !d.en.toLowerCase().includes(q) && !d.artist.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  const sk = _lamentSortKey, sd = _lamentSortDir;
+  data.sort((a,b)=>{
+    if(sk==='attr')  return (ATTR_ORDER[a.attr]-ATTR_ORDER[b.attr])*sd || a.char.localeCompare(b.char,'ja')*sd;
+    if(sk==='char')  return a.char.localeCompare(b.char,'ja')*sd;
+    if(sk==='ja')    return a.ja.localeCompare(b.ja,'ja')*sd;
+    if(sk==='en')    return a.en.localeCompare(b.en,'en')*sd;
+    return 0;
+  });
+  document.getElementById('lament-count').textContent = data.length + '件';
+  const tbody = document.getElementById('lament-tbody');
+  tbody.innerHTML = data.map(d=>{
+    const col = ATTR_COL[d.attr] || 'var(--text)';
+    const qlTag = d.qlipha ? '<span style="font-size:.6rem;padding:.1rem .3rem;border-radius:3px;background:rgba(168,74,237,.25);color:#c0a0ef;margin-left:.3rem;">クリファ</span>' : '';
+    const ytJpBtn = d.yt ? `<a href="${d.yt}" target="_blank" rel="noopener" onclick="event.stopPropagation()"
+      style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:22px;border-radius:4px;background:#ff0000;color:#fff;font-size:.65rem;text-decoration:none;font-weight:700;">▶</a>` : '<span style="color:var(--text-dim);font-size:.65rem;">—</span>';
+    const ytEnBtn = d.yt_en ? `<a href="${d.yt_en}" target="_blank" rel="noopener" onclick="event.stopPropagation()"
+      style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:22px;border-radius:4px;background:#1565c0;color:#fff;font-size:.65rem;text-decoration:none;font-weight:700;">▶</a>` : '<span style="color:var(--text-dim);font-size:.65rem;">—</span>';
+    return `<tr style="cursor:default;" onmouseenter="this.style.background='var(--bg-card-hover)'" onmouseleave="this.style.background=''">
+      <td style="padding:.42rem .7rem;border-bottom:1px solid #1e1e2e;">
+        <span style="font-size:.78rem;font-weight:700;color:${col};">${d.attr}</span>
+      </td>
+      <td style="padding:.42rem .7rem;border-bottom:1px solid #1e1e2e;white-space:nowrap;font-weight:600;font-size:.82rem;">
+        ${d.char}${qlTag}
+      </td>
+      <td style="padding:.42rem .7rem;border-bottom:1px solid #1e1e2e;font-family:'JetBrains Mono',monospace;font-size:.78rem;">${d.ja}</td>
+      <td style="padding:.42rem .7rem;border-bottom:1px solid #1e1e2e;font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--text-dim);">${d.en}</td>
+      <td style="padding:.42rem .7rem;border-bottom:1px solid #1e1e2e;font-size:.78rem;color:var(--text-dim);">${d.artist}</td>
+      <td style="padding:.42rem .7rem;border-bottom:1px solid #1e1e2e;text-align:center;">${ytJpBtn}</td>
+      <td style="padding:.42rem .7rem;border-bottom:1px solid #1e1e2e;text-align:center;">${ytEnBtn}</td>
+    </tr>`;
+  }).join('');
+}
+
+
+// ギルドストックデータは data/guild_stock.json から動的ロード
+let GUILD_STOCK_MAR = {};
+let STOCK_Q = [71669, 110362, 145180, 167463];
+
+// quintile 0-4 → 色・ラベル
+const STOCK_LEVELS = [
+  {color:"#1e1e1e", label:"低"},
+  {color:"#484848", label:"やや低"},
+  {color:"#7a7a7a", label:"中"},
+  {color:"#d8d8d8", label:"やや高"},
+  {color:"#ffffff", label:"高"},
+];
+// ギルドストック表示バー用カラー
+const STOCK_BAR_LEVELS = [
+  "#1e1e1e",   // 低: ほぼ黒
+  "#484848",   // やや低: 暗グレー
+  "#7a7a7a",   // 中: グレー
+  "#d8d8d8",   // やや高: 明グレー
+  "#ffffff",   // 高: 純白
+];
+function stockLevel(worldLabel){
+  const s = GUILD_STOCK_MAR[parseInt(worldLabel)];
+  if(!s) return -1;
+  for(let i=0;i<STOCK_Q.length;i++) if(s<=STOCK_Q[i]) return i;
+  return 4;
+}
+function stockColor(worldLabel){
+  const l=stockLevel(worldLabel);
+  return l<0?"transparent":STOCK_LEVELS[l].color;
+}
+function stockBarColor(worldLabel){
+  // 占有ヒートマップのバー用：アンバー系（どのタイル色にも映える）
+  const l=stockLevel(worldLabel);
+  return l<0?"transparent":STOCK_BAR_LEVELS[l];
+}
+function stockLabel(worldLabel){
+  const l=stockLevel(worldLabel);
+  return l<0?"":STOCK_LEVELS[l].label;
+}
+function stockFmt(worldLabel){
+  const s=GUILD_STOCK_MAR[parseInt(worldLabel)];
+  if(!s) return "データなし";
+  return (s/10000).toFixed(1)+"万";
+}
+
+const MI=[1,2,3,4,5],AI=Array.from({length:21},(_,i)=>i+1);
+const CN={1:"Elite",2:"Expert",3:"Grand Master"};
+const BN={0:"A",1:"B",2:"C",3:"D"};
+const SN={1:"JP",2:"KR",3:"Asia",4:"NA",5:"EU",6:"Global"};
+const TC={domination:"tag-domination",monopoly:"tag-monopoly",oligopoly:"tag-oligopoly",contested:"tag-contested"};
+const TL={domination:"制覇",monopoly:"独占",oligopoly:"寡占",contested:"分散"};
+const MF="font-family:'JetBrains Mono',monospace;font-weight:600";
+const CNA={1:"EL",2:"EX",3:"GM"};
+const DATA_BASE="data/";
+function fD(d){const p=n=>String(n).padStart(2,"0");return d.getFullYear()+"/"+p(d.getMonth()+1)+"/"+p(d.getDate())+" "+p(d.getHours())+":"+p(d.getMinutes());}
+
+let LD=[],GD=[],lC=null,gC=null,curTab="local",gWF=null,hmView="compact",hmCenterMode=false;
+let hmDates=[],hmDateIdx=-1,hmCache={},hmCurrentData=null;
+// 採用属性分布
+const A_ATTRS=['藍','紅','翠','黄','天','冥'],A_KEY={藍:'ai',紅:'ku',翠:'sui',黄:'ki',天:'ten',冥:'mei'},A_COL={藍:'#4a9ded',紅:'#ed4a4a',翠:'#3de88a',黄:'#edcc3d',天:'#c0c0e8',冥:'#a84aed'},A_BG={藍:'hsl(210 65% 16%)',紅:'hsl(0 65% 16%)',翠:'hsl(145 65% 13%)',黄:'hsl(46 65% 16%)',天:'hsl(235 28% 22%)',冥:'hsl(270 55% 18%)'},A_TC={藍:'#cce4ff',紅:'#ffdada',翠:'#ccffe6',黄:'#fff3cc',天:'#eeeef8',冥:'#e8ccff'};
+let arenaAD=[],arenaDates=[],_arenaFocusWid=null,arenaDateIdx=-1,arenaCache={},arenaCurrentData=null,arenaSrc='ranker_usage',arenaView='compact',arenaPlayTimer=null,arenaPlaySpeed=650;
+
+function setWF(w){gWF=w;document.getElementById("wf-name").textContent=w;document.getElementById("wf-float").classList.remove("hidden");renderG();}
+function clearWF(){gWF=null;document.getElementById("wf-float").classList.add("hidden");renderG();}
+function gfGD(){
+  let d=gWF?GD.filter(it=>it._wds.split(", ").includes(gWF)):GD;
+  const wld=document.getElementById("gf-world")?.value.trim();
+  const cls=document.getElementById("gf-cls")?.value;
+  if(wld)d=d.filter(it=>it._wds&&it._wds.split(", ").some(w=>w.includes(wld)));
+  if(cls&&cls!=="all")d=d.filter(it=>String(it._cls)===cls);
+  return d;
+}
+
+function initFilters(){
+  // グラバト：クラス
+  const gCls=document.getElementById("gf-cls");
+  const gClsSet=new Set(GD.map(it=>it._cls).filter(Boolean));
+  gCls.innerHTML='<option value="all">全て</option>';
+  [...gClsSet].sort((a,b)=>a-b).forEach(c=>{const o=document.createElement("option");o.value=c;o.textContent=CN[c]||c;gCls.appendChild(o);});
+}
+
+function ss(t,c=""){document.getElementById("statusBar").innerHTML=`<span class="${c}">${t}</span>`;}
+function oc(n,a){if(!n||n==="NPC")return"#444";if(n===a.dominant)return"var(--oligo-a)";const o=[];for(const x of a.mn){if(x!==a.dominant&&x!=="NPC"&&!o.includes(x))o.push(x);}return o.indexOf(n)===0?"var(--oligo-b)":"var(--oligo-c)";}
+
+function az(co){
+  const mn=MI.map(id=>co[id]?.guildName||"NPC");
+  const mc={};for(const n of mn)mc[n]=(mc[n]||0)+1;
+  const mm=Math.max(...Object.values(mc));
+  const dom=Object.keys(mc).find(k=>mc[k]===mm);
+  const ac={};for(const id of AI){const n=co[id]?.guildName||"NPC";if(n!=="NPC")ac[n]=(ac[n]||0)+1;}
+  const am=Math.max(0,...Object.values(ac));
+  const ad=Object.keys(ac).find(k=>ac[k]===am)||"NPC";
+  let st;if(am===21)st="domination";else if(mm===5)st="monopoly";else if(mm>=3)st="oligopoly";else st="contested";
+  return{mn,mm,dominant:dom,am,ad,status:st};
+}
+
+function cntS(items){
+  const r={total:items.length,domination:0,monopoly:0,oligopoly:0,contested:0,guilds:new Set()};
+  for(const it of items){r[it._a.status]++;for(const id of MI){const g=it.co[id]?.guildName;if(g&&g!=="NPC")r.guilds.add(g);}}return r;
+}
+
+function mkSide(el,items){
+  el.innerHTML="";const gs={domination:[],monopoly:[],oligopoly:[]};
+  for(const it of items){const s=it._a.status;if(gs[s])gs[s].push(it);}
+  function sec(arr,label,cls,sT){if(!arr.length)return;
+    const h=document.createElement("div");h.className=`mono-section-header ${cls}`;h.textContent=`${label} — ${arr.length}件`;el.appendChild(h);
+    for(const it of arr){const a=it._a,d=document.createElement("div");d.className="mono-item";
+      const w=document.createElement("span");w.className="world-id";w.textContent=it._label;d.appendChild(w);
+      const t=document.createElement("span");t.className=TC[sT];t.textContent=TL[sT];d.appendChild(t);
+      const nm=document.createElement("span");nm.className="guild-name";nm.textContent=sT==="domination"?a.ad:a.dominant;
+      nm.style.color=sT==="domination"?"var(--domination)":sT==="monopoly"?"var(--monopoly)":"var(--oligopoly)";d.appendChild(nm);
+      const ct=document.createElement("span");ct.className="castle-count";ct.textContent=sT==="domination"?a.am+"/21":sT==="monopoly"?"5/5":a.mm+"/5";d.appendChild(ct);
+      el.appendChild(d);}}
+  sec(gs.domination,"制覇","domination-header","domination");
+  sec(gs.monopoly,"独占","monopoly-header","monopoly");
+  sec(gs.oligopoly,"寡占","oligopoly-header","oligopoly");
+  if(!gs.domination.length&&!gs.monopoly.length&&!gs.oligopoly.length)el.innerHTML='<div style="padding:1rem;color:var(--text-dim);">該当なし</div>';
+}
+
+function mkDonut(cv,items,ex){
+  let d=0,m=0,o=0,c=0;for(const it of items){const s=it._a.status;if(s==="domination")d++;else if(s==="monopoly")m++;else if(s==="oligopoly")o++;else c++;}
+  if(ex)ex.destroy();
+  return new Chart(cv.getContext("2d"),{type:"doughnut",data:{labels:["制覇(21城)","独占(5城)","寡占(3-4城)","分散"],datasets:[{data:[d,m,o,c],backgroundColor:["#ff6b6b","#e74c3c","#f39c12","#2ecc71"],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{color:"#e0e0ec",padding:12,font:{size:11}}}}}});
+}
+
+function addGM(tr,it){
+  const t1=document.createElement("td");t1.textContent=it._sn;t1.className="srv-col";tr.appendChild(t1);
+  const t3=document.createElement("td");t3.className="worlds-cell";for(const w of it._wds.split(", ")){const sp=document.createElement("span");sp.className="world-tag"+(gWF===w?" active":"");sp.textContent=w;sp.onclick=(e)=>{e.stopPropagation();setWF(w);};t3.appendChild(sp);}tr.appendChild(t3);
+  const t4=document.createElement("td");t4.textContent=CNA[it._cls]+"-"+BN[it._blk];t4.style.cssText=MF;tr.appendChild(t4);
+}
+
+function bldDet(items,dB,mB,oB,dC,mC,oC,dCard,isGw){
+  dB.innerHTML="";mB.innerHTML="";oB.innerHTML="";let dc=0,mc=0,occ=0;
+  for(const it of items){const a=it._a;
+    if(a.status==="domination"){dc++;const tr=document.createElement("tr");
+      if(isGw)addGM(tr,it);else{const td=document.createElement("td");td.textContent=it._label;td.style.cssText=MF;tr.appendChild(td);}
+      const tg=document.createElement("td");tg.textContent=a.ad;tg.style.cssText="font-weight:700;color:var(--domination)";tr.appendChild(tg);
+      const tc=document.createElement("td");tc.textContent=a.am+"/21";tc.style.cssText=MF+";color:var(--domination)";tr.appendChild(tc);dB.appendChild(tr);}
+    if(a.status==="monopoly"){mc++;const tr=document.createElement("tr");
+      if(isGw)addGM(tr,it);else{const td=document.createElement("td");td.textContent=it._label;td.style.cssText=MF;tr.appendChild(td);}
+      const tg=document.createElement("td");tg.textContent=a.dominant;tg.style.cssText="font-weight:700;color:var(--monopoly)";tr.appendChild(tg);
+      for(let i=0;i<5;i++){const td=document.createElement("td");td.className="castle-cell";td.textContent=a.mn[i];td.style.color="var(--monopoly)";tr.appendChild(td);}mB.appendChild(tr);}
+    if(a.status==="oligopoly"){occ++;const tr=document.createElement("tr");
+      if(isGw)addGM(tr,it);else{const td=document.createElement("td");td.textContent=it._label;td.style.cssText=MF;tr.appendChild(td);}
+      const tg=document.createElement("td");tg.textContent=a.dominant;tg.style.cssText="font-weight:700;color:var(--oligopoly)";tr.appendChild(tg);
+      const tc=document.createElement("td");tc.textContent=a.mm+"/5";tc.style.cssText=MF;tr.appendChild(tc);
+      for(let i=0;i<5;i++){const td=document.createElement("td");td.className="castle-cell";td.textContent=a.mn[i];td.style.color=oc(a.mn[i],a);tr.appendChild(td);}oB.appendChild(tr);}
+  }
+  dC.textContent=`(${dc}件)`;mC.textContent=`(${mc}件)`;oC.textContent=`(${occ}件)`;
+  if(dCard)dCard.style.display=dc===0?"none":"";
+}
+
+function bldFull(tb,items,fG,fS,isGw){
+  tb.innerHTML="";const fg=fG.value.toLowerCase(),fs=fS.value;
+  for(const it of items){const a=it._a;
+    if(fs!=="all"&&a.status!==fs)continue;
+    if(fg){const fl=fg.toLowerCase();const gm=a.mn.some(n=>n.toLowerCase().includes(fl));const wm=it._wds&&it._wds.toLowerCase().includes(fl);const lm=it._label&&it._label.toLowerCase().includes(fl);if(!gm&&!wm&&!lm)continue;}
+    const tr=document.createElement("tr");
+    if(isGw)addGM(tr,it);else{const td=document.createElement("td");td.textContent=it._label;td.style.cssText=MF;tr.appendChild(td);}
+    const tdS=document.createElement("td");tdS.innerHTML=`<span class="${TC[a.status]}">${TL[a.status]}</span>`;tr.appendChild(tdS);
+    for(let i=0;i<5;i++){const td=document.createElement("td");td.className="castle-cell";const n=a.mn[i];td.textContent=n;
+      if(a.status==="domination")td.style.color="var(--domination)";
+      else if(a.status==="monopoly")td.style.color="var(--monopoly)";
+      else if(a.status==="oligopoly")td.style.color=oc(n,a);
+      else td.style.color="var(--text)";tr.appendChild(td);}
+    const tdD=document.createElement("td");
+    if(a.status==="domination"){tdD.textContent=a.ad+" ("+a.am+"城制覇)";tdD.style.cssText="font-weight:700;color:var(--domination)";}
+    else if(a.status==="monopoly"){tdD.textContent=a.dominant;tdD.style.cssText="font-weight:700;color:var(--monopoly)";}
+    else if(a.status==="oligopoly"){tdD.textContent=a.dominant+" ("+a.mm+"城)";tdD.style.color="var(--oligopoly)";}
+    else{tdD.textContent="-";tdD.style.color="var(--text-dim)";}
+    tr.appendChild(tdD);tb.appendChild(tr);}
+}
+
+function switchTab(tab){
+  // フローティングUI を全リセット
+  const resetFloating = () => {
+    document.getElementById('hm-back-btn')?.classList.add('hidden');
+    document.getElementById('hm-back-compact-btn')?.classList.add('hidden');
+    document.querySelector('.arena-back-btn')?.classList.add('hidden');
+    document.querySelectorAll('.hm-tile-focused').forEach(t=>{
+      t.classList.remove('hm-tile-focused');
+      t.style.outline=''; t.style.outlineOffset='';
+    });
+    window._hmPrevCompact = false;
+    window._hmFocusLabel = null;
+    // タブ切替時は中央拠点モードをリセット
+    if(hmCenterMode){
+      hmCenterMode = false;
+      document.getElementById('hm-btn-center')?.classList.remove('active');
+    }
+  };
+  // ヒートマップ→ギルドバトルジャンプ経由の場合は hm-back-btn は残す
+  if(tab==='local' && window._hmFocusLabel){
+    document.getElementById('hm-back-compact-btn')?.classList.add('hidden');
+  } else {
+    resetFloating();
+  }
+  curTab=tab;
+  if(tab!=="heatmap"&&hmPlayTimer)hmPlayStop();
+  if(tab!=="arena"&&arenaPlayTimer)arenaPlayStop();
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
+  document.getElementById("dash-local").classList.toggle("hidden",tab!=="local"||!LD.length);
+  document.getElementById("dash-global").classList.toggle("hidden",tab!=="global"||!GD.length);
+  document.getElementById("dash-heatmap").classList.toggle("hidden",tab!=="heatmap"||!LD.length);
+  document.getElementById("dash-arena").classList.toggle("hidden",tab!=="arena");
+  document.getElementById("dash-stock").classList.toggle("hidden",tab!=="stock");
+  document.getElementById("dash-lament").classList.toggle("hidden",tab!=="lament");
+  document.getElementById("local-date-bar").classList.toggle("hidden",tab!=="local");
+  document.getElementById("global-date-bar").classList.toggle("hidden",tab!=="global");
+  document.getElementById("hm-date-bar").classList.toggle("hidden",tab!=="heatmap"||!LD.length);
+  document.getElementById("arena-date-bar").classList.toggle("hidden",tab!=="arena"||!arenaDates.length);
+  document.getElementById("wf-float").classList.toggle("hidden",tab!=="global"||!gWF);
+  if(tab==="heatmap"&&LD.length)renderHM();
+  if(tab==="arena")arenaRender();
+  if(tab==="stock")renderStock();
+  if(tab==="lament")renderLament();
+}
+
+// JSON読み込み
+async function loadData(){
+  ss("データ読み込み中…","loading");
+  try{
+    const [lRes,gRes]=await Promise.all([fetch(DATA_BASE+"local.json"),fetch(DATA_BASE+"global.json")]);
+    if(!lRes.ok||!gRes.ok)throw new Error("APIサーバーがメンテナンス中です。しばらく待ってから再度アクセスしてください");
+    const lData=await lRes.json(),gData=await gRes.json();
+    // ギルドバトル
+    LD=[];
+    for(const it of lData.items){const co={};for(const[k,v]of Object.entries(it.castles))co[parseInt(k)]=v;const sn=SN[String(it.wid).charAt(0)]||"?";const r={co,_label:it.label,wid:it.wid,_sn:sn};r._a=az(co);LD.push(r);}
+    // グランドバトル
+    GD=[];
+    for(const it of gData.items){const co={};for(const[k,v]of Object.entries(it.castles))co[parseInt(k)]=v;const r={co,_label:it.label,_gid:it.gid,_cls:it.cls,_blk:it.blk,_sn:it.sn,_wds:it.wds};r._a=az(co);GD.push(r);}
+    initFilters();
+    // 最終更新
+    const fa=lData.fetchedAt||gData.fetchedAt;
+    if(fa){document.getElementById("lastUpdate").textContent="更新: "+fD(new Date(fa));}
+    else{const ts=Math.max(lData.timestamp||0,gData.timestamp||0);if(ts>0)document.getElementById("lastUpdate").textContent="更新: "+fD(new Date(ts*1000));}
+    ss("✓","ok");
+    hmCurrentData=LD;
+    renderL();renderG();switchTab(curTab);
+    loadHMHistory();
+    loadArena();
+    loadGuildStock();
+  }catch(e){ss(`✗ ${e.message}`,"err");}
+}
+
+function renderL(){const fd=LD,s=cntS(fd);
+  document.getElementById("l-total").textContent=s.total;document.getElementById("l-dom").textContent=s.domination;
+  document.getElementById("l-mono").textContent=s.monopoly;document.getElementById("l-oligo").textContent=s.oligopoly;
+  document.getElementById("l-cont").textContent=s.contested;document.getElementById("l-guilds").textContent=s.guilds.size;
+  const pct=n=>s.total?((n/s.total)*100).toFixed(1)+"%":"";
+  document.getElementById("l-dom-rate").textContent=pct(s.domination);
+  document.getElementById("l-mono-rate").textContent=pct(s.monopoly);
+  document.getElementById("l-oligo-rate").textContent=pct(s.oligopoly);
+  document.getElementById("l-cont-rate").textContent=pct(s.contested);
+  mkSide(document.getElementById("l-side"),fd);lC=mkDonut(document.getElementById("l-donut"),fd,lC);
+  bldDet(fd,document.getElementById("l-domB"),document.getElementById("l-monoB"),document.getElementById("l-oligoB"),
+    document.getElementById("l-domC"),document.getElementById("l-monoC"),document.getElementById("l-oligoC"),document.getElementById("l-domCard"),false);
+  renderLT();}
+function renderLT(){bldFull(document.getElementById("l-tB"),LD,document.getElementById("l-fG"),document.getElementById("l-fS"),false);}
+
+function renderG(){const fd=gfGD(),s=cntS(fd);
+  const dg=document.getElementById("dash-global");dg.classList.add("g-hide-srv");
+  document.getElementById("g-total").textContent=s.total;document.getElementById("g-dom").textContent=s.domination;
+  document.getElementById("g-mono").textContent=s.monopoly;document.getElementById("g-oligo").textContent=s.oligopoly;
+  document.getElementById("g-cont").textContent=s.contested;document.getElementById("g-guilds").textContent=s.guilds.size;
+  const pct=n=>s.total?((n/s.total)*100).toFixed(1)+"%":"";
+  document.getElementById("g-dom-rate").textContent=pct(s.domination);
+  document.getElementById("g-mono-rate").textContent=pct(s.monopoly);
+  document.getElementById("g-oligo-rate").textContent=pct(s.oligopoly);
+  document.getElementById("g-cont-rate").textContent=pct(s.contested);
+  mkSide(document.getElementById("g-side"),fd);gC=mkDonut(document.getElementById("g-donut"),fd,gC);
+  bldDet(fd,document.getElementById("g-domB"),document.getElementById("g-monoB"),document.getElementById("g-oligoB"),
+    document.getElementById("g-domC"),document.getElementById("g-monoC"),document.getElementById("g-oligoC"),document.getElementById("g-domCard"),true);
+  renderGT();}
+function renderGT(){bldFull(document.getElementById("g-tB"),gfGD(),document.getElementById("g-fG"),document.getElementById("g-fS"),true);}
+
+// ヒートマップ
+function hmColor(ratio){const t=Math.max(0,Math.min(1,(ratio-.14)/(1-.14)));const h=215-t*215;return`hsl(${h} 78% ${50-t*8}%)`;}
+function hmText(ratio){return ratio>=.25?"#fff":"#0f172a";}
+function hmLabel(ratio){if(ratio>=.6)return"独占級";if(ratio>=.4)return"強寡占";if(ratio>=.25)return"寡占";return"分散";}
+
+function parseLocalItems(data){
+  const items=[];
+  for(const it of data.items){const co={};for(const[k,v]of Object.entries(it.castles))co[parseInt(k)]=v;const sn=SN[String(it.wid).charAt(0)]||"?";const r={co,_label:it.label,wid:it.wid,_sn:sn};r._a=az(co);items.push(r);}
+  return items;
+}
+
+
+// ═══════════════════════════════
+// ギルドバトル/グランドバトル 履歴
+// ═══════════════════════════════
+let localDates=[], localDateIdx=0, localCache={};
+let globalDates=[], globalDateIdx=0, globalCache={};
+
+function localDateUpdateUI(){
+  const d=localDates[localDateIdx]||"-";
+  document.getElementById("local-date-value").textContent=d;
+  const isLatest=localDateIdx===localDates.length-1;
+  document.getElementById("local-date-tag").textContent=isLatest?"（最新）":`${localDates.length-1-localDateIdx}日前`;
+  document.getElementById("local-date-prev").disabled=localDateIdx<=0;
+  document.getElementById("local-date-next").disabled=localDateIdx>=localDates.length-1;
+}
+
+function globalDateUpdateUI(){
+  const d=globalDates[globalDateIdx]||"-";
+  document.getElementById("global-date-value").textContent=d;
+  const isLatest=globalDateIdx===globalDates.length-1;
+  document.getElementById("global-date-tag").textContent=isLatest?"（最新）":`${globalDates.length-1-globalDateIdx}日前`;
+  document.getElementById("global-date-prev").disabled=globalDateIdx<=0;
+  document.getElementById("global-date-next").disabled=globalDateIdx>=globalDates.length-1;
+}
+
+async function localLoadDate(idx){
+  if(idx<0||idx>=localDates.length)return;
+  localDateIdx=idx;
+  document.getElementById("local-date-slider").value=idx;
+  localDateUpdateUI();
+  const dateStr=localDates[idx];
+  if(!localCache[dateStr]){
+    try{
+      document.getElementById("local-date-tag").textContent="読み込み中…";
+      const res=await fetch(`${DATA_BASE}history/local/${dateStr}.json`);
+      if(!res.ok){document.getElementById("local-date-tag").textContent="データなし";return;}
+      localCache[dateStr]=parseLocalItems(await res.json());
+    }catch(e){document.getElementById("local-date-tag").textContent="読み込み失敗";return;}
+    localDateUpdateUI();
+  }
+  LD=localCache[dateStr];
+  renderL();
+}
+
+async function globalLoadDate(idx){
+  if(idx<0||idx>=globalDates.length)return;
+  globalDateIdx=idx;
+  document.getElementById("global-date-slider").value=idx;
+  globalDateUpdateUI();
+  const dateStr=globalDates[idx];
+  if(!globalCache[dateStr]){
+    try{
+      document.getElementById("global-date-tag").textContent="読み込み中…";
+      const res=await fetch(`${DATA_BASE}history/global/${dateStr}.json`);
+      if(!res.ok){document.getElementById("global-date-tag").textContent="データなし";return;}
+      const data=await res.json();
+      const items=[];
+      for(const it of data.items){const co={};for(const[k,v]of Object.entries(it.castles))co[parseInt(k)]=v;const r={co,_label:it.label,_gid:it.gid,_cls:it.cls,_blk:it.blk,_sn:it.sn,_wds:it.wds};r._a=az(co);items.push(r);}
+      globalCache[dateStr]=items;
+    }catch(e){document.getElementById("global-date-tag").textContent="読み込み失敗";return;}
+    globalDateUpdateUI();
+  }
+  GD=globalCache[dateStr];
+  renderG();
+}
+
+
+// ギルドバトル/グランドバトル 再生制御
+let _localPlayTimer=null, _localSpeed=650;
+let _globalPlayTimer=null, _globalSpeed=650;
+
+function localSetSpeed(ms){
+  _localSpeed=ms;
+  document.querySelectorAll('#local-date-bar .hm-speed-btn').forEach(b=>{
+    b.classList.toggle('active', b.textContent===({1300:'0.5x',650:'1x',325:'2x',160:'4x'}[ms]));
+  });
+  if(_localPlayTimer){clearInterval(_localPlayTimer);_localPlayTimer=setInterval(localPlayStep,ms);}
+}
+function localPlayStep(){
+  if(localDateIdx>=localDates.length-1){localPlayStop();return;}
+  localLoadDate(localDateIdx+1);
+}
+function localPlayStop(){
+  if(_localPlayTimer){clearInterval(_localPlayTimer);_localPlayTimer=null;}
+  const btn=document.getElementById('local-play-btn');
+  if(btn)btn.textContent='▶';
+}
+function localPlayToggle(){
+  if(_localPlayTimer){localPlayStop();}
+  else{
+    if(localDateIdx>=localDates.length-1)localLoadDate(0);
+    _localPlayTimer=setInterval(localPlayStep,_localSpeed);
+    const btn=document.getElementById('local-play-btn');
+    if(btn)btn.textContent='⏸';
+  }
+}
+
+function globalSetSpeed(ms){
+  _globalSpeed=ms;
+  document.querySelectorAll('#global-date-bar .hm-speed-btn').forEach(b=>{
+    b.classList.toggle('active', b.textContent===({1300:'0.5x',650:'1x',325:'2x',160:'4x'}[ms]));
+  });
+  if(_globalPlayTimer){clearInterval(_globalPlayTimer);_globalPlayTimer=setInterval(globalPlayStep,ms);}
+}
+function globalPlayStep(){
+  if(globalDateIdx>=globalDates.length-1){globalPlayStop();return;}
+  globalLoadDate(globalDateIdx+1);
+}
+function globalPlayStop(){
+  if(_globalPlayTimer){clearInterval(_globalPlayTimer);_globalPlayTimer=null;}
+  const btn=document.getElementById('global-play-btn');
+  if(btn)btn.textContent='▶';
+}
+function globalPlayToggle(){
+  if(_globalPlayTimer){globalPlayStop();}
+  else{
+    if(globalDateIdx>=globalDates.length-1)globalLoadDate(0);
+    _globalPlayTimer=setInterval(globalPlayStep,_globalSpeed);
+    const btn=document.getElementById('global-play-btn');
+    if(btn)btn.textContent='⏸';
+  }
+}
+
+function localDateChange(){localLoadDate(Number(document.getElementById("local-date-slider").value));}
+function globalDateChange(){globalLoadDate(Number(document.getElementById("global-date-slider").value));}
+function localDateStep(d){localLoadDate(localDateIdx+d);}
+function globalDateStep(d){globalLoadDate(globalDateIdx+d);}
+
+async function loadHMHistory(){
+  try{
+    const res=await fetch(DATA_BASE+"history/index.json");
+    if(!res.ok)return;
+    const idx=await res.json();
+    hmDates=idx.local||[];
+    if(!hmDates.length)return;
+    // 最新日を「今日」としてLDをキャッシュ
+    const latestDate=hmDates[hmDates.length-1];
+    hmCache[latestDate]=LD;
+    // スライダー初期化
+    const slider=document.getElementById("hm-date-slider");
+    slider.max=hmDates.length-1;
+    slider.value=hmDates.length-1;
+    hmDateIdx=hmDates.length-1;
+    hmUpdateUI();
+    // ギルドバトル履歴スライダー
+    localDates=idx.local||[];
+    if(localDates.length){
+      localCache[localDates[localDates.length-1]]=LD.slice();
+      const ls=document.getElementById("local-date-slider");
+      ls.max=localDates.length-1; ls.value=localDates.length-1;
+      localDateIdx=localDates.length-1; localDateUpdateUI();
+    }
+    // グランドバトル履歴スライダー
+    globalDates=idx.global||[];
+    if(globalDates.length){
+      globalCache[globalDates[globalDates.length-1]]=GD.slice();
+      const gs=document.getElementById("global-date-slider");
+      gs.max=globalDates.length-1; gs.value=globalDates.length-1;
+      globalDateIdx=globalDates.length-1; globalDateUpdateUI();
+    }
+  }catch(e){console.warn("history index load failed:",e);}
+}
+
+function hmUpdateUI(){
+  const d=hmDates[hmDateIdx]||"-";
+  document.getElementById("hm-date-value").textContent=d;
+  const isLatest=hmDateIdx===hmDates.length-1;
+  document.getElementById("hm-date-tag").textContent=isLatest?"（最新）":`${hmDates.length-1-hmDateIdx}日前`;
+  document.getElementById("hm-date-prev").disabled=hmDateIdx<=0;
+  document.getElementById("hm-date-next").disabled=hmDateIdx>=hmDates.length-1;
+}
+
+async function hmLoadDate(idx){
+  if(idx<0||idx>=hmDates.length)return;
+  hmDateIdx=idx;
+  document.getElementById("hm-date-slider").value=idx;
+  hmUpdateUI();
+  const dateStr=hmDates[idx];
+  if(!hmCache[dateStr]){
+    try{
+      document.getElementById("hm-date-tag").textContent="読み込み中…";
+      const res=await fetch(`${DATA_BASE}history/local/${dateStr}.json`);
+      if(!res.ok){document.getElementById("hm-date-tag").textContent="データなし";return;}
+      const data=await res.json();
+      hmCache[dateStr]=parseLocalItems(data);
+    }catch(e){document.getElementById("hm-date-tag").textContent="読み込み失敗";return;}
+    hmUpdateUI();
+  }
+  hmCurrentData=hmCache[dateStr];
+  renderHM();
+}
+
+function hmDateChange(){hmPlayStop();hmLoadDate(Number(document.getElementById("hm-date-slider").value));}
+function hmDateStep(d){hmPlayStop();hmLoadDate(hmDateIdx+d);}
+
+let hmPlayTimer=null,hmPlaySpeed=650;
+
+function hmPlayToggle(){
+  if(hmPlayTimer){hmPlayStop();}
+  else{hmPlayStart();}
+}
+
+function hmJumpToNormal(label){
+  window._hmFocusLabel = label;
+  setHMView('normal');  // 通常ビューに切替（_hmPrevCompactはsetHMView後にセット）
+  window._hmPrevCompact = true; // setHMViewが隠した後に再表示フラグをセット
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      _hmHighlightTile(label);
+      document.getElementById('hm-back-compact-btn').classList.remove('hidden');
+    });
+  });
+}
+
+function _hmHighlightTile(label){
+  // 既存のハイライトをクリア
+  document.querySelectorAll('.hm-tile-focused').forEach(t => t.classList.remove('hm-tile-focused'));
+  // 対象タイルを検索
+  const tiles = document.querySelectorAll('#hm-grid .hm-tile');
+  for(const tile of tiles){
+    const wid = tile.querySelector('.hm-tile-wid');
+    if(wid && wid.textContent.trim() === label){
+      tile.classList.add('hm-tile-focused');
+      tile.scrollIntoView({behavior:'smooth', block:'center'});
+      // 2秒後にハイライトをフェードアウト
+      setTimeout(()=>{ tile.classList.remove('hm-tile-focused'); }, 2500);
+      break;
+    }
+  }
+}
+
+function hmBackToCompact(){
+  window._hmFocusLabel = null;
+  window._hmPrevCompact = false;
+  document.getElementById('hm-back-compact-btn').classList.add('hidden');
+  document.querySelectorAll('.hm-tile-focused').forEach(t=>t.classList.remove('hm-tile-focused'));
+  setHMView('compact');
+}
+
+function hmShowWorldInTable(label){
+  window._hmPrevView = hmView;
+  window._hmFocusLabel = label;
+  hmPlayStop();
+  // 一覧に戻るボタンが出ていたら隠す（重なり防止）
+  document.getElementById('hm-back-compact-btn')?.classList.add('hidden');
+  switchTab('local');
+  // テーブル描画後に対象行をフォーカス
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      const rows = document.querySelectorAll('#l-tB tr');
+      rows.forEach(r => r.classList.remove('hm-row-focus'));
+      for(const row of rows){
+        const cell = row.querySelector('td');
+        if(cell && cell.textContent.trim() === label){
+          row.classList.add('hm-row-focus');
+          row.scrollIntoView({behavior:'smooth', block:'center'});
+          break;
+        }
+      }
+      document.getElementById('hm-back-btn').classList.remove('hidden');
+    });
+  });
+}
+
+function hmBackToHeatmap(){
+  document.getElementById('hm-back-btn').classList.add('hidden');
+  // フォーカス解除
+  document.querySelectorAll('#l-tB tr.hm-row-focus').forEach(r=>r.classList.remove('hm-row-focus'));
+  switchTab('heatmap');
+}
+
+function renderStockScatter(){
+  const grid = document.getElementById('stock-grid');
+  grid.classList.remove('hm-compact');
+  // gridレイアウトを無効化してフルwidth表示
+  grid.style.display = 'block';
+  grid.style.padding = '0';
+
+  // データ: LDとGUILD_STOCK_MARの共通ワールドを使用
+  const points = [];
+  const maxS = 238558, minS = 42601;
+  for(const [label, stock] of Object.entries(GUILD_STOCK_MAR)){
+    const ld = LD.find(d => d._label === label);
+    if(!ld) continue;
+    const occ = ld._a.am / 21 * 100; // 占有率%
+    const lv = stockLevel(label);
+    points.push({ label, stock, occ, am: ld._a.am, lv,
+      col: lv >= 3 ? STOCK_LEVELS[lv].color : STOCK_LEVELS[lv].color });
+  }
+
+  const W=860, H=520, PL=60, PR=20, PT=30, PB=55;
+  const IW=W-PL-PR, IH=H-PT-PB;
+
+  // 軸スケール
+  const maxOcc=Math.max(...points.map(p=>p.occ));
+  const stockRange=maxS-minS;
+
+  function sx(occ){ return PL + occ/Math.max(maxOcc,100)*IW; }
+  function sy(stock){ return PT + IH - (stock-minS)/stockRange*IH; }
+
+  // 中央値（分割線）
+  const medOcc = 100*(LD.reduce((s,d)=>s+d._a.am/21,0)/LD.length);
+  const medStock = (maxS+minS)/2;
+  const mx = sx(medOcc), my = sy(medStock);
+
+  // 象限ラベル
+  const quads = [
+    {x: mx+IW*0.15, y: PT+IH*0.1, t:'寡占×高活動', sub:'競争激しく活発'},
+    {x: PL+IW*0.05, y: PT+IH*0.1, t:'分散×高活動', sub:'多様で活気あり'},
+    {x: mx+IW*0.15, y: PT+IH*0.82, t:'寡占×低活動', sub:'安定制覇'},
+    {x: PL+IW*0.05, y: PT+IH*0.82, t:'分散×低活動', sub:'静かな競争'},
+  ];
+
+  // X軸メモリ
+  const xTicks=[0,25,50,75,100];
+  const yTicks=[50000,100000,150000,200000,250000];
+
+  const dots = points.map(p=>{
+    const col = STOCK_LEVELS[p.lv].color;
+    const bc = p.lv>=3?'rgba(0,0,0,.3)':'rgba(255,255,255,.2)';
+    return `<circle class="scatter-dot" cx="${sx(p.occ).toFixed(1)}" cy="${sy(p.stock).toFixed(1)}"
+      r="7" fill="${col}" fill-opacity="0.88" stroke="${bc}" stroke-width="1"
+      data-label="${p.label}" data-occ="${p.occ.toFixed(1)}" data-stock="${p.stock}"
+      data-am="${p.am}" data-lv="${STOCK_LEVELS[p.lv].label}"
+      onmouseenter="scatterTip(event,this)" onmouseleave="scatterHide()"
+      onclick="stockJumpToHeatmap('${p.label}')"/>`;
+  }).join('');
+
+  const quadSvg = quads.map(q=>
+    `<text class="scatter-quadrant-label" x="${q.x}" y="${q.y}">${q.t}</text>
+     <text class="scatter-quadrant-label" x="${q.x}" y="${q.y+16}" font-size="9">${q.sub}</text>`
+  ).join('');
+
+  const xTickSvg = xTicks.map(v=>
+    `<line x1="${sx(v)}" y1="${PT}" x2="${sx(v)}" y2="${PT+IH}" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+     <text class="scatter-axis-label" x="${sx(v)}" y="${PT+IH+16}" text-anchor="middle">${v}%</text>`
+  ).join('');
+
+  const yTickSvg = yTicks.map(v=>
+    `<line x1="${PL}" y1="${sy(v)}" x2="${PL+IW}" y2="${sy(v)}" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+     <text class="scatter-axis-label" x="${PL-6}" y="${sy(v)+4}" text-anchor="end">${(v/10000).toFixed(0)}万</text>`
+  ).join('');
+
+  grid.innerHTML = `<div style="padding:.8rem 1.5rem 120px;width:100%;box-sizing:border-box;">
+    <svg style="width:100%;max-width:100%;display:block;border-radius:12px;background:var(--bg-card);border:1px solid var(--border);" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+      <!-- 背景象限 -->
+      <rect x="${mx}" y="${PT}" width="${PL+IW-mx}" height="${my-PT}" fill="rgba(255,160,0,.04)"/>
+      <rect x="${PL}" y="${PT}" width="${mx-PL}" height="${my-PT}" fill="rgba(100,200,255,.03)"/>
+      <rect x="${mx}" y="${my}" width="${PL+IW-mx}" height="${PT+IH-my}" fill="rgba(255,80,80,.03)"/>
+      <rect x="${PL}" y="${my}" width="${mx-PL}" height="${PT+IH-my}" fill="rgba(100,100,120,.03)"/>
+      <!-- グリッド -->
+      ${xTickSvg}${yTickSvg}
+      <!-- 中央線 -->
+      <line x1="${mx}" y1="${PT}" x2="${mx}" y2="${PT+IH}" stroke="rgba(255,255,255,.15)" stroke-width="1" stroke-dasharray="4,3"/>
+      <line x1="${PL}" y1="${my}" x2="${PL+IW}" y2="${my}" stroke="rgba(255,255,255,.15)" stroke-width="1" stroke-dasharray="4,3"/>
+      <!-- 象限ラベル -->
+      ${quadSvg}
+      <!-- 軸ラベル -->
+      <text class="scatter-axis-label" x="${PL+IW/2}" y="${H-8}" text-anchor="middle">← 分散　占有率　制覇 →</text>
+      <text class="scatter-axis-label" x="13" y="${PT+IH/2}" text-anchor="middle" transform="rotate(-90,13,${PT+IH/2})">ギルドストック（万）</text>
+      <!-- ドット -->
+      ${dots}
+    </svg>
+    <div style="margin-top:.5rem;font-size:.72rem;color:var(--text-dim);text-align:center;line-height:1.6">
+      ● クリックで占有ヒートマップへジャンプ &nbsp;|&nbsp; 点の色 = ギルドストック（暗=低 / 金=高）
+    </div>
+  </div>`;
+}
+
+function scatterTip(e, el){
+  const t = document.getElementById('scatter-tooltip');
+  t.style.display = 'block';
+  t.innerHTML = `<b>w${el.dataset.label}</b><br>占有率 ${el.dataset.occ}%（${el.dataset.am}/21城）<br>ギルドストック ${(el.dataset.stock/10000).toFixed(1)}万 [${el.dataset.lv}]`;
+  scatterMove(e);
+  el.addEventListener('mousemove', scatterMove);
+}
+function scatterMove(e){
+  const t = document.getElementById('scatter-tooltip');
+  const tw = t.offsetWidth || 160;
+  const th = t.offsetHeight || 60;
+  const x = Math.min(e.clientX+12, window.innerWidth-tw-8);
+  const y = Math.max(e.clientY-10, 8);
+  t.style.left = x+'px';
+  t.style.top = Math.min(y, window.innerHeight-th-8)+'px';
+}
+function scatterHide(){
+  document.getElementById('scatter-tooltip').style.display='none';
+}
+
+function hmToggleStockBar(){
+  hmShowStockBar = !hmShowStockBar;
+  const btn = document.getElementById('hm-stock-bar-btn');
+  btn.textContent = '📦 ギルドストック表示 ' + (hmShowStockBar ? 'ON' : 'OFF');
+  btn.style.background = hmShowStockBar ? 'var(--accent)' : 'var(--bg-card)';
+  btn.style.background = hmShowStockBar ? 'var(--accent)' : 'var(--bg-card)';
+  btn.style.color = hmShowStockBar ? '#fff' : 'var(--text-dim)';
+  btn.style.borderColor = hmShowStockBar ? 'var(--accent)' : 'var(--border)';
+  // 凡例の表示/非表示
+  document.getElementById('hm-stock-legend').style.display = hmShowStockBar ? 'flex' : 'none';
+  renderHM();
+}
+
+function stockJumpToNormal(label){
+  // 一覧→通常ビューに切り替えてハイライト
+  const prev = _stockView;
+  stockSetView('normal');
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      const tiles = document.querySelectorAll('#stock-grid .stock-tile');
+      for(const tile of tiles){
+        const wid = tile.querySelector('.stock-tile-wid');
+        if(wid && wid.textContent.trim() === label){
+          tile.style.outline = '3px solid #fff';
+          tile.style.outlineOffset = '-2px';
+          tile.scrollIntoView({behavior:'smooth', block:'center'});
+          setTimeout(()=>{ tile.style.outline=''; tile.style.outlineOffset=''; }, 2500);
+          break;
+        }
+      }
+      // 一覧に戻るボタン表示
+      document.getElementById('stock-back-compact-btn')?.classList.remove('hidden');
+    });
+  });
+}
+
+function stockJumpToHeatmap(label){
+  switchTab('heatmap');
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      const tiles = document.querySelectorAll('#hm-grid .hm-tile');
+      for(const tile of tiles){
+        const wid = tile.querySelector('.hm-tile-wid-compact, .hm-tile-wid');
+        if(wid && wid.textContent.trim() === label){
+          tile.style.outline = '3px solid #ffd000';
+          tile.style.outlineOffset = '-2px';
+          tile.scrollIntoView({behavior:'smooth', block:'center'});
+          setTimeout(()=>{ tile.style.outline=''; tile.style.outlineOffset=''; }, 2000);
+          break;
+        }
+      }
+    });
+  });
+}
+
+function hmPlayStart(){
+  if(hmDateIdx>=hmDates.length-1)hmLoadDate(0);
+  if(hmView!=="compact")setHMView("compact");
+  document.getElementById("dash-heatmap").classList.add("hm-playing");
+  // 再生中はギルドストックバーを非表示
+  document.querySelectorAll(".hm-tile-stock-bar").forEach(b=>b.style.display="none");
+  document.getElementById("hm-stock-legend").style.display="none";
+  const btn=document.getElementById("hm-play-btn");
+  btn.textContent="⏸ 停止";btn.classList.add("playing");
+  hmPlayTimer=true;
+  document.getElementById("hm-grid").scrollIntoView({behavior:"smooth",block:"start"});
+  hmPlayTick();
+}
+
+function hmPlayStop(){
+  if(hmPlayTimer){clearTimeout(hmPlayTimer);hmPlayTimer=null;}
+  document.getElementById("dash-heatmap").classList.remove("hm-playing");
+  // 停止時: ONなら再表示
+  if(hmShowStockBar){
+    document.querySelectorAll(".hm-tile-stock-bar").forEach(b=>b.style.display="");
+    document.getElementById("hm-stock-legend").style.display="flex";
+  }
+  const btn=document.getElementById("hm-play-btn");
+  btn.textContent="▶ 再生";btn.classList.remove("playing");
+}
+
+async function hmPlayTick(){
+  if(hmDateIdx>=hmDates.length-1){hmPlayStop();return;}
+  await hmLoadDate(hmDateIdx+1);
+  if(hmPlayTimer!==null||document.getElementById("hm-play-btn").classList.contains("playing")){
+    hmPlayTimer=setTimeout(hmPlayTick,hmPlaySpeed);
+  }
+}
+
+function hmSetSpeed(ms){
+  hmPlaySpeed=ms;
+  document.querySelectorAll(".hm-speed-btn").forEach(b=>{
+    const speeds={"0.5x":1300,"1x":650,"2x":325,"4x":160};
+    b.classList.toggle("active",speeds[b.textContent]===ms);
+  });
+}
+
+function setHMView(mode){
+  hmView=mode;
+  // 一覧/通常ボタンの排他制御（🏰は独立管理）
+  document.getElementById("hm-btn-compact").classList.toggle("active",mode==="compact");
+  document.getElementById("hm-btn-normal").classList.toggle("active",mode==="normal");
+  // 戻るボタンをリセット
+  document.getElementById('hm-back-compact-btn')?.classList.add('hidden');
+  window._hmPrevCompact = false;
+  renderHM();
+}
+
+function toggleHMCenter(){
+  hmCenterMode = !hmCenterMode;
+  // フローティングボタンをリセット
+  document.getElementById('hm-back-compact-btn')?.classList.add('hidden');
+  window._hmPrevCompact = false;
+  // 🏰ボタンのアクティブ状態を独立に管理
+  document.getElementById('hm-btn-center')?.classList.toggle('active', hmCenterMode);
+  renderHM();
+}
+
+function toggleHMFilter(){
+  const el=document.getElementById("hm-controls");
+  el.classList.toggle("collapsed");
+}
+
+
+// ─── 中央拠点 ストリーク計算 ────────────────────────────────────────
+function calcCenterScoreFromHistory(histItem){
+  // historyのcastlesはstring keyの {guildId, guildName} or null
+  const castles = histItem.castles || {};
+  const guildCounts = {};
+  for(const cid of CENTER_CASTLES){
+    const g = castles[String(cid)];
+    if(!g) continue;
+    const key = String(g.guildId || g.guildName);
+    guildCounts[key] = (guildCounts[key]||0)+1;
+  }
+  if(!Object.keys(guildCounts).length) return {max:0, topGuildId:null, topGuild:''};
+  const max = Math.max(...Object.values(guildCounts));
+  const topEntry = Object.entries(guildCounts).find(([,v])=>v===max);
+  const topGuildId = topEntry?.[0] || null;
+  const g = Object.values(castles).find(g=>g&&String(g.guildId||g.guildName)===topGuildId);
+  return {max, topGuildId, topGuild: g?.guildName || ''};
+}
+
+async function loadCenterStreaks(){
+  // GitHub Actionsで事前計算済みのJSONを読むだけ
+  try {
+    const res = await fetch(`${DATA_BASE}center_streaks.json`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    // { date: "2026-04-03", streaks: { "1": 2, "3": 5, ... } }
+    centerStreaks = data.streaks || {};
+    console.log('[centerStreaks] loaded', Object.keys(centerStreaks).length, 'worlds, date:', data.date);
+  } catch (err) {
+    console.warn('[centerStreaks] fallback to client-side calc:', err.message);
+    // フォールバック: クライアント側で計算（center_streaks.jsonがない場合）
+    await _loadCenterStreaksFallback();
+  }
+}
+
+async function _loadCenterStreaksFallback(){
+  const CCIDS=[1,2,3,4,5];
+  function scoreLD(d){
+    const gc={};
+    for(const c of CCIDS){const g=d.co[String(c)]||d.co[c];if(!g)continue;const k=String(g.guildId||g.guildName);gc[k]=(gc[k]||0)+1;}
+    const v=Object.values(gc);if(!v.length)return{max:0,gid:null};
+    const max=Math.max(...v);return{max,gid:Object.keys(gc).find(k=>gc[k]===max)||null};
+  }
+  function scoreHist(item){
+    const cs=item.castles||{};const gc={};
+    for(const c of CCIDS){const g=cs[String(c)];if(!g)continue;const k=String(g.guildId||g.guildName);gc[k]=(gc[k]||0)+1;}
+    const v=Object.values(gc);if(!v.length)return{max:0,gid:null};
+    const max=Math.max(...v);return{max,gid:Object.keys(gc).find(k=>gc[k]===max)||null};
+  }
+  const today=new Date();
+  const dates=Array.from({length:4},(_,i)=>{const d=new Date(today);d.setDate(d.getDate()-(i+1));return d.toISOString().slice(0,10);});
+  const hists=await Promise.all(dates.map(date=>
+    fetch(`${DATA_BASE}history/local/${date}.json`).then(r=>r.ok?r.json():null).catch(()=>null)
+  ));
+  centerStreaks={};
+  for(const d of LD){
+    const label=d._label;
+    const{max:s0,gid:g0}=scoreLD(d);
+    let streak=1,pm=s0,pg=g0;
+    for(const h of hists){
+      if(!h)break;
+      const item=h.items?.find(it=>it.label===label);
+      if(!item)break;
+      const{max:si,gid:gi}=scoreHist(item);
+      if(gi===pg&&pm>=si){streak++;pm=si;pg=gi;}else break;
+    }
+    centerStreaks[label]=Math.min(streak,99);
+  }
+  const dist=Object.values(centerStreaks).reduce((a,v)=>{a[v]=(a[v]||0)+1;return a;},{});
+  console.log('[centerStreaks] fallback dist:',dist);
+}
+
+
+// ─── 中央拠点ヒートマップ ─────────────────────────────────────
+// 中央5拠点(CastleId 1-5)の最大占有数で色分け
+const CENTER_CASTLES = [1,2,3,4,5];
+const CENTER_LABELS = ['','中央分散','中央拮抗','中央優勢','中央独占','中央制覇'];
+const CENTER_COLORS = [
+  null,
+  'hsl(215,72%,48%)',  // 1/5 分散: 青
+  'hsl(175,72%,40%)',  // 2/5 拮抗: 緑青
+  'hsl(82,72%,38%)',   // 3/5 優勢: 黄緑
+  'hsl(30,90%,48%)',   // 4/5 独占: オレンジ
+  'hsl(0,80%,45%)',    // 5/5 制覇: 赤
+];
+
+function calcCenterScore(d){
+  // co: {1: {guildName:..., guildId:...}, ...}
+  const guildCounts = {};
+  for(const cid of CENTER_CASTLES){
+    const g = d.co[cid];
+    if(!g) continue;
+    const key = String(g.guildId || g.guildName);
+    guildCounts[key] = (guildCounts[key]||0) + 1;
+  }
+  if(!Object.keys(guildCounts).length) return {max:0, topGuildId:null, topGuild:''};
+  const max = Math.max(...Object.values(guildCounts));
+  const topEntry = Object.entries(guildCounts).find(([,v])=>v===max);
+  const topGuildId = topEntry?.[0] || null;
+  const g = Object.values(d.co).find(g => g && String(g.guildId||g.guildName)===topGuildId);
+  return { max, topGuildId, topGuild: g?.guildName || '' };
+}
+
+function renderHMCenter(sortBy, minR){
+  const grid = document.getElementById('hm-grid');
+  const compact = hmView === 'compact'; // 一覧/通常のレイアウト選択を反映
+  grid.classList.remove('hm-compact');
+  // gridレイアウトを確実に戻す（散布図から戻った場合のリセット）
+  grid.style.display = '';
+  grid.style.padding = '';
+  // コンパクト時は中央拠点専用の列幅
+  grid.classList.toggle('hm-center-compact-grid', compact);
+
+  // データ計算
+  let items = LD.map(d => {
+    const { max, topGuild } = calcCenterScore(d);
+    return { wid: d.wid, label: d._label, max, topGuild };
+  });
+
+  // ソート
+  switch(sortBy){
+    case 'wid-desc':  items.sort((a,b)=>b.wid-a.wid); break;
+    case 'rate-desc': items.sort((a,b)=>b.max-a.max||(a.wid-b.wid)); break;
+    case 'rate-asc':  items.sort((a,b)=>a.max-b.max||(a.wid-b.wid)); break;
+    case 'stock-desc': items.sort((a,b)=>(GUILD_STOCK_MAR[parseInt(b.label)]||0)-(GUILD_STOCK_MAR[parseInt(a.label)]||0)); break;
+    case 'stock-asc':  items.sort((a,b)=>(GUILD_STOCK_MAR[parseInt(a.label)]||0)-(GUILD_STOCK_MAR[parseInt(b.label)]||0)); break;
+    case 'combo-desc': {
+      const maxS=238558,minS=42601;
+      items.sort((a,b)=>{
+        const sA=(GUILD_STOCK_MAR[parseInt(a.label)]||minS);
+        const sB=(GUILD_STOCK_MAR[parseInt(b.label)]||minS);
+        const scoreA=a.max/5*0.5+(sA-minS)/(maxS-minS)*0.5;
+        const scoreB=b.max/5*0.5+(sB-minS)/(maxS-minS)*0.5;
+        return scoreB-scoreA;
+      }); break;
+    }
+    default: items.sort((a,b)=>a.wid-b.wid);
+  }
+
+  document.getElementById('hm-visCount').textContent = items.length + '件';
+
+  // サマリー更新
+  const counts = [0,0,0,0,0,0];
+  items.forEach(it => counts[it.max]++);
+  const tb = document.getElementById('hm-summary-body');
+  if(tb){
+    tb.innerHTML = [
+      {name:'中央制覇（5/5城）', color:CENTER_COLORS[5], pred:5},
+      {name:'中央独占（4/5城）', color:CENTER_COLORS[4], pred:4},
+      {name:'中央優勢（3/5城）', color:CENTER_COLORS[3], pred:3},
+      {name:'中央拮抗（2/5城）', color:CENTER_COLORS[2], pred:2},
+      {name:'中央分散（1/5城）', color:CENTER_COLORS[1], pred:1},
+    ].map(c=>{
+      const n = counts[c.pred]||0;
+      return `<tr><td><span class="hm-st-dot" style="background:${c.color}"></span><span class="hm-st-name">${c.name}</span></td><td class="hm-st-count">${n}</td><td class="hm-st-pct">${(n/items.length*100).toFixed(1)}%</td></tr>`;
+    }).join('')+`<tr style="border-top:1px solid var(--border)"><td style="font-weight:600;color:var(--text-dim)">合計</td><td class="hm-st-count">${items.length}</td><td class="hm-st-pct">100%</td></tr>`;
+  }
+
+  // タイル生成
+  grid.classList.toggle('hm-compact', compact);
+  const stockBarHtml = (label) => hmShowStockBar
+    ? `<div class="hm-tile-stock-bar" style="background:${stockBarColor(label)}"></div>` : '';
+
+  grid.innerHTML = items.map(it => {
+    const bg = CENTER_COLORS[it.max] || '#333';
+    const tc = '#fff';
+    const lbl = CENTER_LABELS[it.max] || '';
+    if(compact){
+      const streakC = centerStreaks[it.label] || 1;
+      const streakTC = streakC >= 5 ? '5+' : `${streakC}d`;
+      return `<article class="hm-tile hm-center-compact-tile" style="background:${bg};color:${tc};"
+          onclick="hmJumpToNormal('${it.label}')"
+          title="w${it.label} / 中央${it.max}/5城 / ${it.topGuild} / ${streakC >= 5 ? '5日以上' : streakC+'日'}継続">
+        <div class="hm-center-compact-inner">
+          <div class="hm-center-compact-top">w${it.label} <span class="hm-center-compact-fraction">${it.max}/5</span></div>
+          <div class="hm-center-compact-streak">${streakTC}</div>
+        </div>
+        ${stockBarHtml(it.label)}
+      </article>`;
+    }
+    const streak = centerStreaks[it.label] || 1;
+    const streakTxt = streak >= 5 ? '5日以上' : `${streak}日`;
+    return `<article class="hm-tile" style="background:${bg};color:${tc};"
+        onclick="hmJumpToNormal('${it.label}')"
+        title="w${it.label} / 中央${it.max}/5城 / ${it.topGuild} / ${streakTxt}継続">
+      <div class="hm-tile-top">
+        <div><div class="hm-tile-world">World</div><div class="hm-tile-wid">${it.label}</div></div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.15rem">
+          <div class="hm-badge">${lbl}</div>
+          <span class="hm-center-streak-badge">🔥${streakTxt}</span>
+        </div>
+      </div>
+      <div class="hm-tile-body">
+        <div class="hm-center-score">${it.max}<span style="font-size:.9rem;opacity:.7">/5</span></div>
+        <div class="hm-center-label" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%">${it.topGuild || '(未占有)'}</div>
+      </div>
+      ${stockBarHtml(it.label)}
+    </article>`;
+  }).join('');
+}
+
+function renderHM(){
+  const grid=document.getElementById("hm-grid");
+  // hm-center-compact-gridはrenderHMCenter内で管理
+  const minR=Number(document.getElementById("hm-minRate").value);
+  document.getElementById("hm-rangeVal").textContent=minR+"%";
+  const sortBy=document.getElementById("hm-sort").value;
+  if(hmCenterMode){
+    if(!Object.keys(centerStreaks).length){
+      // 未計算 → historyを取得してから描画
+      grid.style.display = '';
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-dim);font-size:.9rem">🏰 連続日数を計算中…<br><span style=\"font-size:.75rem;opacity:.6\">履歴データを取得しています</span></div>';
+      loadCenterStreaks().then(()=>{
+        // 計算完了後、まだcenterModeなら描画
+        if(hmCenterMode) renderHMCenter(sortBy, minR);
+      }).catch(err=>{
+        console.error('streak calc error:', err);
+        if(hmCenterMode) renderHMCenter(sortBy, minR);
+      });
+    } else {
+      renderHMCenter(sortBy,minR);
+    }
+    return;
+  }
+  const compact=hmView==="compact";
+
+  grid.classList.toggle("hm-compact",compact);
+
+  // データソース（日付選択時はhmCurrentData、なければLD）
+  const src=hmCurrentData||LD;
+  const hmData=src.map(it=>({wid:it.wid||0,label:it._label,am:it._a.am,ad:it._a.ad,ratio:it._a.am/21,pct:it._a.am/21*100}));
+
+  // stats table
+  if(hmData.length){
+    const total=hmData.length;
+    const cats=[
+      {name:"制覇 (21城)",color:hmColor(1),pred:d=>d.am===21},
+      {name:"独占級 (13-20城)",color:hmColor(17/21),pred:d=>d.am>=13&&d.am<21},
+      {name:"強寡占 (9-12城)",color:hmColor(10/21),pred:d=>d.am>=9&&d.am<=12},
+      {name:"寡占 (6-8城)",color:hmColor(7/21),pred:d=>d.am>=6&&d.am<=8},
+      {name:"分散 (3-5城)",color:hmColor(4/21),pred:d=>d.am<=5},
+    ];
+    const tb=document.getElementById("hm-summary-body");
+    tb.innerHTML=cats.map(c=>{
+      const n=hmData.filter(c.pred).length;
+      return`<tr><td><span class="hm-st-dot" style="background:${c.color}"></span><span class="hm-st-name">${c.name}</span></td><td class="hm-st-count">${n}</td><td class="hm-st-pct">${(n/total*100).toFixed(1)}%</td></tr>`;
+    }).join("")+`<tr style="border-top:1px solid var(--border);"><td style="font-weight:600;color:var(--text-dim);">合計</td><td class="hm-st-count">${total}</td><td class="hm-st-pct">100%</td></tr>`;
+  }
+
+  // filter & sort
+  let fd=hmData.filter(d=>{
+    if(d.pct<minR)return false;
+    return true;
+  });
+  switch(sortBy){
+    case"wid-desc":fd.sort((a,b)=>b.wid-a.wid);break;
+    case"rate-desc":fd.sort((a,b)=>b.ratio-a.ratio||(a.wid-b.wid));break;
+    case"rate-asc":fd.sort((a,b)=>a.ratio-b.ratio||(a.wid-b.wid));break;
+    case"stock-desc":fd.sort((a,b)=>(GUILD_STOCK_MAR[parseInt(b.label)]||0)-(GUILD_STOCK_MAR[parseInt(a.label)]||0));break;
+    case"stock-asc":fd.sort((a,b)=>(GUILD_STOCK_MAR[parseInt(a.label)]||0)-(GUILD_STOCK_MAR[parseInt(b.label)]||0));break;
+    case"combo-desc":fd.sort((a,b)=>{
+      // 占有率(0-1) × ギルドストック正規化(0-1) の複合スコア
+      const maxS=238558,minS=42601;
+      const sA=(GUILD_STOCK_MAR[parseInt(a.label)]||minS);
+      const sB=(GUILD_STOCK_MAR[parseInt(b.label)]||minS);
+      const scoreA=a.ratio*0.5+(sA-minS)/(maxS-minS)*0.5;
+      const scoreB=b.ratio*0.5+(sB-minS)/(maxS-minS)*0.5;
+      return scoreB-scoreA;
+    });break;
+    default:fd.sort((a,b)=>a.wid-b.wid);
+  }
+
+  document.getElementById("hm-visCount").textContent=fd.length+"件";
+
+  if(!fd.length){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--text-dim);">条件に一致するワールドがありません</div>';return;}
+
+  if(compact){
+    grid.innerHTML=fd.map(d=>{
+      const bg=hmColor(d.ratio);const c=hmText(d.ratio);
+      return`<article class="hm-tile" style="background:${bg};color:${c};" title="w${d.label} / ${d.pct.toFixed(1)}% / ${d.am}拠点 / ${d.ad} / ストック:${stockFmt(d.label)}" onclick="hmJumpToNormal('${d.label}')">
+        <div class="hm-tile-body"><div class="hm-tile-wid-compact">w${d.label}</div><div class="hm-tile-rate">${d.am}/21</div></div>
+        ${hmShowStockBar ? `<div class="hm-tile-stock-bar" style="background:${stockBarColor(d.label)}"></div>` : ""}
+      </article>`;
+    }).join("");
+  }else{
+    grid.innerHTML=fd.map(d=>{
+      const bg=hmColor(d.ratio);const c=hmText(d.ratio);
+      return`<article class="hm-tile" style="background:${bg};color:${c};" title="World ${d.label} / ${d.pct.toFixed(1)}% / ${d.am}拠点 / ${d.ad} / ストック:${stockFmt(d.label)}" onclick="hmShowWorldInTable('${d.label}')">
+        <div class="hm-tile-top"><div><div class="hm-tile-world">World</div><div class="hm-tile-wid">${d.label}</div></div><div class="hm-badge">${hmLabel(d.ratio)}</div></div>
+        <div class="hm-tile-body"><div class="hm-tile-rate">${d.pct.toFixed(1)}%</div><div class="hm-tile-sub">最大占有 ${d.am}/21 拠点</div><div class="hm-tile-guild">${d.ad}</div></div>
+        ${hmShowStockBar ? `<div class="hm-tile-stock-bar" style="background:${stockBarColor(d.label)}"></div>` : ""}
+      </article>`;
+    }).join("");
+  }
+}
+
+
+// ══════════════════════════════════════════════════════
+// 採用属性分布
+// ══════════════════════════════════════════════════════
+
+async function loadGuildStock(){
+  try{
+    const res = await fetch(DATA_BASE + "guild_stock.json");
+    if(!res.ok){ console.warn("guild_stock.json not found:", res.status); return; }
+    const data = await res.json();
+    GUILD_STOCK_MAR = data.items || {};
+    if(data.quintiles){
+      STOCK_Q = [data.quintiles.q20, data.quintiles.q40, data.quintiles.q60, data.quintiles.q80];
+    }
+    console.log("guild_stock.json loaded:", Object.keys(GUILD_STOCK_MAR).length, "worlds");
+    if(curTab === "stock") renderStock();
+  } catch(e){
+    console.warn("guild_stock.json load error:", e);
+  }
+}
+
+async function loadArena(){
+  // arenaタブがアクティブなら「読み込み中」を表示
+  if(curTab==="arena")document.getElementById("a-grid").innerHTML='<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--text-dim);">読み込み中…</div>';
+  try{
+    const res=await fetch(DATA_BASE+"arena.json");
+    if(!res.ok){
+      console.warn("arena.json fetch failed: HTTP",res.status);
+      if(curTab==="arena")document.getElementById("a-grid").innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:2rem;color:#e74c3c;">arena.json が見つかりません (HTTP ${res.status})<br><small style="color:var(--text-dim)">GitHub Actions を実行してください</small></div>`;
+      return;
+    }
+    const data=await res.json();
+    console.log("arena.json loaded: items=",data.items?.length,"fetchedAt=",data.fetchedAt);
+    arenaAD=arenaParseItems(data);
+    console.log("arenaAD parsed:",arenaAD.length,"worlds");
+    // 採用属性の更新日時は表示しない（毎日18時更新と固定表示）
+    if(curTab==="arena")arenaRender();
+    loadArenaHistory(data);
+  }catch(e){
+    console.warn("arena.json load failed:",e);
+    if(curTab==="arena")document.getElementById("a-grid").innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:2rem;color:#e74c3c;">読み込みエラー: ${e.message}</div>`;
+  }
+}
+
+function arenaParseItems(data){
+  return(data.items||[]).map(it=>{
+    // 新フォーマット: pct 直接 (fetch-data.mjs v2 /arena/latest)
+    if(it.pct){
+      return{wid:it.wid,label:it.label,pct:it.pct,dominant:it.dominant,
+             player_count:it.player_count||0,char_count:it.char_count||0};
+    }
+    // 旧フォーマット: total_usage / ranker_usage (fetch-data.mjs v1 /weekly/arena)
+    const s=it.ranker_usage||it.total_usage;
+    if(s?.pct){
+      return{wid:it.wid,label:it.label,pct:s.pct,dominant:s.dominant,
+             player_count:0,char_count:0};
+    }
+    return null;
+  }).filter(Boolean);
+}
+
+async function loadArenaHistory(latestData){
+  try{
+    const res=await fetch(DATA_BASE+"history/index.json");
+    if(!res.ok)return;
+    const idx=await res.json();
+    arenaDates=idx.arena||[];
+    if(!arenaDates.length)return;
+    arenaCache[arenaDates[arenaDates.length-1]]=arenaAD;
+    const slider=document.getElementById("a-date-slider");
+    slider.max=arenaDates.length-1;slider.value=arenaDates.length-1;
+    arenaDateIdx=arenaDates.length-1;
+    arenaUpdateUI();
+    if(curTab==="arena")document.getElementById("arena-date-bar").classList.remove("hidden");
+  }catch(e){console.warn("arena history failed:",e);}
+}
+
+async function arenaLoadDate(idx){
+  if(idx<0||idx>=arenaDates.length)return;
+  arenaDateIdx=idx;
+  document.getElementById("a-date-slider").value=idx;
+  arenaUpdateUI();
+  const dateStr=arenaDates[idx];
+  if(!arenaCache[dateStr]){
+    document.getElementById("a-date-tag").textContent="読み込み中…";
+    try{
+      const res=await fetch(`${DATA_BASE}history/arena/${dateStr}.json`);
+      if(!res.ok){document.getElementById("a-date-tag").textContent="データなし";return;}
+      arenaCache[dateStr]=arenaParseItems(await res.json());
+    }catch{document.getElementById("a-date-tag").textContent="読み込み失敗";return;}
+    arenaUpdateUI();
+  }
+  arenaCurrentData=(idx===arenaDates.length-1)?null:arenaCache[dateStr];
+  arenaRender();
+}
+
+function arenaUpdateUI(){
+  const d=arenaDates[arenaDateIdx]||"-";
+  document.getElementById("a-date-value").textContent=d;
+  const isLatest=arenaDateIdx===arenaDates.length-1;
+  document.getElementById("a-date-tag").textContent=isLatest?"（最新）":`${arenaDates.length-1-arenaDateIdx}日前`;
+  document.getElementById("a-date-prev").disabled=arenaDateIdx<=0;
+  document.getElementById("a-date-next").disabled=arenaDateIdx>=arenaDates.length-1;
+}
+
+function arenaDateChange(){arenaPlayStop();arenaLoadDate(+document.getElementById("a-date-slider").value);}
+function arenaDateStep(d){arenaPlayStop();arenaLoadDate(arenaDateIdx+d);}
+
+function arenaPlayToggle(){arenaPlayTimer?arenaPlayStop():arenaPlayStart();}
+function arenaPlayStart(){
+  if(arenaDateIdx>=arenaDates.length-1)arenaDateIdx=-1;
+  if(arenaView!=="compact")arenaSetView("compact");
+  const btn=document.getElementById("a-play-btn");
+  btn.textContent="⏸ 停止";btn.classList.add("playing");
+  arenaPlayTimer=true;
+  arenaPlayTick();
+}
+function arenaPlayStop(){
+  if(arenaPlayTimer){clearTimeout(arenaPlayTimer);arenaPlayTimer=null;}
+  const btn=document.getElementById("a-play-btn");
+  btn.textContent="▶ 再生";btn.classList.remove("playing");
+}
+async function arenaPlayTick(){
+  if(arenaDateIdx>=arenaDates.length-1){arenaPlayStop();return;}
+  await arenaLoadDate(arenaDateIdx+1);
+  if(arenaPlayTimer!==null||document.getElementById("a-play-btn").classList.contains("playing")){
+    arenaPlayTimer=setTimeout(arenaPlayTick,arenaPlaySpeed);
+  }
+}
+function arenaSetSpeed(ms){
+  arenaPlaySpeed=ms;
+  document.querySelectorAll("#arena-date-bar .hm-speed-btn").forEach(b=>{
+    const sp={"0.5x":1300,"1x":650,"2x":325,"4x":160};
+    b.classList.toggle("active",sp[b.textContent]===ms);
+  });
+}
+
+function arenaSetSrc(src){
+  // /arena/latest エンドポイントに移行したため、全プレイヤー/上位30名の区別はなし
+  // ボタンは残すが機能なし（将来の拡張用）
+  console.log("集計対象切替は非対応になりました（/arena/latest に統合）");
+}
+
+function arenaSetView(v){
+  arenaView=v;
+  ["compact","normal","table"].forEach(x=>document.getElementById("a-vb-"+x).classList.toggle("active",x===v));
+  // 手動で表示切替したときは戻るボタンを隠す
+  document.getElementById("arena-back-btn").classList.add("hidden");
+  arenaRender();
+}
+
+function arenaRender(){
+  if(!arenaAD.length){
+    document.getElementById("a-grid").innerHTML='<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--text-dim);">データを読み込み中… または arena.json にデータがありません<br><small>ブラウザの開発者ツール (F12) → Console でエラーを確認してください</small></div>';
+    document.getElementById("a-table-card").classList.add("hidden");
+    document.getElementById("a-vis-count").textContent="0件";
+    return;
+  }
+  const src=arenaCurrentData||arenaAD;
+  const sorted=arenaSortItems([...src]);
+  document.getElementById("a-vis-count").textContent=sorted.length+"件";
+  arenaUpdateStats(sorted);
+  arenaUpdateDomBar(sorted);
+  if(arenaView==="table")arenaRenderTable(sorted);
+  else arenaRenderGrid(sorted);
+}
+
+function arenaSortItems(items){
+  const s=document.getElementById("a-sort").value;
+  if(s==="wid-asc") return items.sort((a,b)=>a.wid-b.wid);
+  if(s==="wid-desc")return items.sort((a,b)=>b.wid-a.wid);
+  const am={ai:"藍",ku:"紅",sui:"翠",ki:"黄",ten:"天",mei:"冥"};
+  const isDesc=s.endsWith("-desc");
+  const a=am[s.replace(/-(?:desc|asc)$/,"")];
+  return isDesc
+    ? items.sort((x,y)=>(y.pct[a]||0)-(x.pct[a]||0))
+    : items.sort((x,y)=>(x.pct[a]||0)-(y.pct[a]||0));
+}
+
+function arenaUpdateStats(items){
+  document.getElementById("a-worlds").textContent=items.length;
+  const ids={藍:"a-ai",紅:"a-ku",翠:"a-sui",黄:"a-ki",天:"a-ten",冥:"a-mei"};
+  A_ATTRS.forEach(a=>{
+    const avg=items.length?items.reduce((s,d)=>s+(d.pct[a]||0),0)/items.length:0;
+    document.getElementById(ids[a]).textContent=avg.toFixed(1)+"%";
+  });
+}
+
+function arenaUpdateDomBar(items){
+  const cnt=Object.fromEntries(A_ATTRS.map(a=>[a,0]));
+  items.forEach(d=>{if(d.dominant)cnt[d.dominant]++;});
+  const tot=items.length||1;
+  document.getElementById("a-dom-bar").innerHTML=A_ATTRS.map(a=>
+    `<div class="arena-dom-seg" style="flex-basis:${cnt[a]/tot*100}%;background:${A_COL[a]};opacity:.8"></div>`
+  ).join("");
+  document.getElementById("a-dom-legend").innerHTML=A_ATTRS.map(a=>
+    `<span class="arena-dom-legend-item"><span class="arena-dot" style="background:${A_COL[a]}"></span><span style="color:${A_COL[a]};font-weight:700">${a}</span><span style="color:var(--text-dim)">&nbsp;${cnt[a]}W</span></span>`
+  ).join("");
+}
+
+function arenaRenderGrid(items){
+  document.getElementById("a-table-card").classList.add("hidden");
+  const grid=document.getElementById("a-grid");
+  grid.style.display="";
+  const compact=arenaView==="compact";
+  grid.classList.toggle("hm-compact",compact);
+  if(!items.length){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--text-dim);">データがありません</div>';return;}
+  grid.innerHTML=items.map(d=>{
+    const dom=d.dominant||A_ATTRS[0];
+    const bg=A_BG[dom],tc=A_TC[dom],p=d.pct;
+    if(compact){
+      return`<article class="hm-tile" style="background:${bg};color:${tc};" title="W${d.label} | ${A_ATTRS.map(a=>a+":"+(p[a]||0).toFixed(1)+"%").join(" ")}" onclick="arenaShowWorldInTable(${d.wid})">
+        <div class="hm-tile-body"><div class="hm-tile-wid-compact">w${d.label}</div><div class="hm-tile-dominant">${dom}</div></div></article>`;
+    }
+    const segs=A_ATTRS.map(a=>`<div class="attr-seg ${A_KEY[a]}" style="flex-basis:${(p[a]||0).toFixed(2)}%"></div>`).join("");
+    const top2=[...A_ATTRS].sort((a,b)=>(p[b]||0)-(p[a]||0)).slice(0,2);
+    const sub=top2.map(a=>`<span style="color:${A_COL[a]};font-weight:700">${a}</span> ${(p[a]||0).toFixed(1)}%`).join(' <span style="opacity:.4">/</span> ');
+    return`<article class="hm-tile" style="background:${bg};color:${tc};" onclick="arenaShowWorldInTable(${d.wid})">
+      <div class="hm-tile-top"><div><div class="hm-tile-world">World</div><div class="hm-tile-wid">${d.label}</div></div><div class="hm-badge" style="color:${A_COL[dom]}">${dom}</div></div>
+      <div class="hm-tile-body"><div class="attr-bar">${segs}</div><div class="hm-tile-dominant" style="color:${A_COL[dom]}">${(p[dom]||0).toFixed(1)}%</div><div class="hm-tile-pct">${sub}</div></div></article>`;
+  }).join("");
+}
+
+function arenaRenderTable(items){
+  document.getElementById("a-grid").style.display="none";
+  document.getElementById("a-table-card").classList.remove("hidden");
+  const maxP=Object.fromEntries(A_ATTRS.map(a=>[a,Math.max(...items.map(d=>d.pct[a]||0),1)]));
+  const s=document.getElementById("a-sort").value;
+  const thW=()=>{const sc=s==="wid-asc"?"sort-asc":s==="wid-desc"?"sort-desc":"";return`<th class="${sc}" onclick="arenaTblSort('wid')">World</th>`;};
+  const thA=a=>{const k=A_KEY[a],sc=s===k+"-desc"?"sort-desc":s===k+"-asc"?"sort-asc":"";return`<th class="${k} ${sc}" onclick="arenaTblSort('${k}')">${a}</th>`;};
+  const head=`<thead><tr>${thW()}${A_ATTRS.map(thA).join("")}<th>支配</th></tr></thead>`;
+  const body=items.map(d=>{
+    const cells=A_ATTRS.map(a=>{
+      const pv=(d.pct[a]||0),pw=Math.round(pv/maxP[a]*100);
+      return`<td class="td-attrbar-wrap"><div class="td-attrbar" style="width:${pw}%;background:${A_COL[a]}"></div><span style="position:relative;font-family:'JetBrains Mono',monospace;font-size:.8rem">${pv.toFixed(1)}%</span></td>`;
+    }).join("");
+    const dom=d.dominant||"";
+    const isFocused=d.wid===_arenaFocusWid;
+    return`<tr class="${isFocused?'arena-row-focus':''}" onclick="arenaShowWorldInTable(${d.wid})" style="cursor:pointer">
+      <td style="font-family:'JetBrains Mono',monospace;font-weight:700">
+        w${d.label}
+        <a class="arena-ext-link" href="https://mentemori.icu/arena.html" target="_blank" rel="noopener"
+           title="mentemori.icuでw${d.label}のバトルリーグを確認"
+           onclick="event.stopPropagation()">↗</a>
+      </td>${cells}<td><span class="td-dom ${A_KEY[dom]||""}">${dom}</span></td></tr>`;
+  }).join("");
+  document.getElementById("a-table").innerHTML=head+`<tbody>${body}</tbody>`;
+}
+
+
+
+// ══════════════════════════════════════════════════════
+// ギルドストック月次ヒートマップ
+// ══════════════════════════════════════════════════════
+let _stockView = 'compact';
+let hmShowStockBar = false; // ギルドストック表示 デフォルトOFF
+let centerStreaks = {}; // ワールドラベル→連続日数
+
+function stockBackToCompact(){
+  document.getElementById('stock-back-compact-btn')?.classList.add('hidden');
+  stockSetView('compact');
+}
+
+function stockSetView(v){
+  _stockView = v;
+  ['compact','normal','scatter'].forEach(x=>document.getElementById('stock-vb-'+x).classList.toggle('active',x===v));
+  renderStock();
+}
+
+function renderStock(){
+  const grid = document.getElementById('stock-grid');
+  if(!Object.keys(GUILD_STOCK_MAR).length){
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--text-dim);">読み込み中… / データがありません</div>';
+    return;
+  }
+  if(_stockView==='scatter'){renderStockScatter();return;}
+  // gridレイアウトを戻す
+  grid.style.display = '';
+  grid.style.padding = '';
+  // 凡例
+  const legend = document.getElementById('stock-legend-row');
+  legend.innerHTML = '<span style="color:var(--text-dim);font-weight:700;font-size:.7rem">ギルドストック:</span>' +
+    STOCK_LEVELS.map((l,i)=>{
+      const lo = i===0 ? 0 : STOCK_Q[i-1];
+      const dotBorder = i>=3 ? 'border:1px solid #888;' : '';
+      const hi = i<STOCK_Q.length ? STOCK_Q[i] : null;
+      const range = hi ? `~${(hi/10000).toFixed(1)}万` : `${(lo/10000).toFixed(1)}万~`;
+      return `<span style="display:flex;align-items:center;gap:.3rem"><span class="stock-legend-dot" style="background:${l.color}"></span><span style="color:var(--text-dim)">${l.label}(${range})</span></span>`;
+    }).join('');
+
+  // データ準備・ソート
+  let entries = Object.entries(GUILD_STOCK_MAR).map(([k,v])=>({wid:parseInt(k),label:k,stock:v}));
+  const sortBy = document.getElementById('stock-sort').value;
+  if(sortBy==='wid-asc')  entries.sort((a,b)=>a.wid-b.wid);
+  if(sortBy==='wid-desc') entries.sort((a,b)=>b.wid-a.wid);
+  if(sortBy==='stock-desc') entries.sort((a,b)=>b.stock-a.stock);
+  if(sortBy==='stock-asc')  entries.sort((a,b)=>a.stock-b.stock);
+
+  document.getElementById('stock-vis-count').textContent = entries.length + '件';
+
+  const maxStock = Math.max(...entries.map(e=>e.stock));
+  const compact = _stockView === 'compact';
+  grid.classList.toggle('hm-compact', compact);
+
+  grid.innerHTML = entries.map(({wid, label, stock}, idx)=>{
+    const lv = stockLevel(label);
+    const col = STOCK_LEVELS[lv].color;
+    const lbl = STOCK_LEVELS[lv].label;
+    const val = (stock/10000).toFixed(1)+'万';
+    const tc = lv >= 3 ? '#111111' : '#ffffff'; // 明るいグレーの時は黒文字
+    if(compact){
+      return `<article class="stock-tile stock-tile-compact-wrap" style="background:${col};color:${tc};cursor:pointer;" title="W${label} / ${val} (${lbl})" onclick="stockJumpToNormal('${label}')">
+        <div class="stock-tile-compact-line"><span class="stc-wid">w${label}</span><span class="stc-val">${val}</span></div>
+      </article>`;
+    }
+    // 占有データをLD（ギルドバトルデータ）から取得
+    const ldItem = LD.find(d=>d._label===label);
+    const occStr = ldItem ? `${(ldItem._a.am/21*100).toFixed(0)}% (${ldItem._a.am}/21城)` : '';
+    const occLbl = ldItem ? hmLabel(ldItem._a.am/21) : '';
+    return `<article class="stock-tile" style="background:${col};color:${tc};cursor:pointer;" onclick="stockJumpToHeatmap('${label}')">
+      <div class="stock-tile-top">
+        <div>
+          <div class="stock-tile-world">World <span style="font-family:'JetBrains Mono',monospace;font-size:.6rem;opacity:.7">#${idx+1}</span></div>
+          <div class="stock-tile-wid">${label}</div>
+        </div>
+        <div class="stock-tile-badge">${lbl}</div>
+      </div>
+      <div class="stock-tile-body">
+        <div class="stock-tile-val">${val}</div>
+        ${occStr ? `<div style="font-size:.68rem;opacity:.85;margin-top:.25rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">占有 ${occStr}</div>` : ''}
+        ${occLbl ? `<div style="font-size:.6rem;opacity:.7">${occLbl}</div>` : ''}
+      </div>
+    </article>`;
+  }).join('');
+}
+
+function arenaShowWorldInTable(wid){_arenaFocusWid=wid;
+  const prevView=arenaView;
+  window._arenaPrevView=prevView;  // 元の表示モードを保存
+  arenaSetView("table");           // テーブル表示に切替（戻るボタンは隠れる）
+  // テーブル描画後に対象行にフォーカス
+  requestAnimationFrame(()=>{
+    const src=arenaCurrentData||arenaAD;
+    const sorted=arenaSortItems([...src]);
+    const idx=sorted.findIndex(d=>d.wid===wid);
+    const rows=document.querySelectorAll("#a-table tbody tr");
+    // 既存のフォーカスをクリア
+    rows.forEach(r=>r.classList.remove("arena-row-focus"));
+    if(idx>=0&&rows[idx]){
+      rows[idx].classList.add("arena-row-focus");
+      rows[idx].scrollIntoView({behavior:"smooth",block:"center"});
+    }
+    // 戻るボタンを表示
+    document.getElementById("arena-back-btn").classList.remove("hidden");
+  });
+}
+
+function arenaBackToGrid(){_arenaFocusWid=null;
+  const prev=window._arenaPrevView||"compact";
+  arenaSetView(prev);  // これで戻るボタンも隠れる
+}
+function arenaTblSort(col){
+  const sel=document.getElementById("a-sort");
+  const cur=sel.value;
+  if(col==="wid"){
+    sel.value=cur==="wid-asc"?"wid-desc":"wid-asc";
+  } else {
+    // 同じ列を再クリック → desc/asc トグル、別列 → desc から開始
+    if(cur===col+"-desc") sel.value=col+"-asc";
+    else sel.value=col+"-desc";
+  }
+  arenaRender();
+}
+
+document.addEventListener("DOMContentLoaded",()=>{loadData();});
+</script>
+
 </body>
 </html>
