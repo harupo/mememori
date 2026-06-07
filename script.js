@@ -1,25 +1,29 @@
-// 3周年版 FGIテーブル（2025年10月データ）
+// 3.5周年版 FGIテーブル（252名データで再均等化）
 const fgiTable = [
-    // SS: 60億以上
+    // SSS: 100億以上（3.5周年で新設）
+    { rank: "SSS", min: 0, max: 0.116, style: "分散型" },
+    { rank: "SSS", min: 0.116, max: 0.128, style: "バランス分散型" },
+    { rank: "SSS", min: 0.128, max: 1.0, style: "集中型" },
+    // SS: 60億〜99億
     { rank: "SS", min: 0, max: 0.119, style: "分散型" },
-    { rank: "SS", min: 0.119, max: 0.133, style: "バランス型" },
-    { rank: "SS", min: 0.133, max: 1.0, style: "集中型" },
+    { rank: "SS", min: 0.119, max: 0.138, style: "バランス分散型" },
+    { rank: "SS", min: 0.138, max: 1.0, style: "集中型" },
     // S: 30億〜59億
-    { rank: "S", min: 0, max: 0.138, style: "分散型" },
-    { rank: "S", min: 0.138, max: 0.158, style: "バランス型" },
-    { rank: "S", min: 0.158, max: 1.0, style: "集中型" },
+    { rank: "S", min: 0, max: 0.149, style: "分散型" },
+    { rank: "S", min: 0.149, max: 0.167, style: "バランス分散型" },
+    { rank: "S", min: 0.167, max: 1.0, style: "集中型" },
     // A: 10億〜29億
-    { rank: "A", min: 0, max: 0.168, style: "分散型" },
-    { rank: "A", min: 0.168, max: 0.194, style: "バランス型" },
-    { rank: "A", min: 0.194, max: 1.0, style: "集中型" },
+    { rank: "A", min: 0, max: 0.172, style: "分散型" },
+    { rank: "A", min: 0.172, max: 0.199, style: "バランス分散型" },
+    { rank: "A", min: 0.199, max: 1.0, style: "集中型" },
     // B: 5億〜9億
-    { rank: "B", min: 0, max: 0.207, style: "分散型" },
-    { rank: "B", min: 0.207, max: 0.228, style: "バランス型" },
-    { rank: "B", min: 0.228, max: 1.0, style: "集中型" },
+    { rank: "B", min: 0, max: 0.196, style: "分散型" },
+    { rank: "B", min: 0.196, max: 0.214, style: "バランス分散型" },
+    { rank: "B", min: 0.214, max: 1.0, style: "集中型" },
     // C: 5億未満
-    { rank: "C", min: 0, max: 0.238, style: "分散型" },
-    { rank: "C", min: 0.238, max: 0.274, style: "バランス型" },
-    { rank: "C", min: 0.274, max: 1.0, style: "集中型" },
+    { rank: "C", min: 0, max: 0.232, style: "分散型" },
+    { rank: "C", min: 0.232, max: 0.269, style: "バランス分散型" },
+    { rank: "C", min: 0.269, max: 1.0, style: "集中型" },
 ];
 
 // カラースキーム（#b8daff基準）
@@ -50,7 +54,7 @@ function drawFgiMap(fgi, levelPower, rank, style) {
     // 現在のランクのFGI閾値を取得（プレイヤー位置計算用）
     const rankThresholds = fgiTable.filter(row => row.rank === rank);
     const dispersedMax = rankThresholds.find(r => r.style === "分散型")?.max || 0.15;
-    const balancedMax = rankThresholds.find(r => r.style === "バランス型")?.max || 0.25;
+    const balancedMax = rankThresholds.find(r => r.style === "バランス分散型")?.max || 0.25;
     
     // FGI上限（表示用）
     const fgiMax = 0.35;
@@ -81,27 +85,30 @@ function drawFgiMap(fgi, levelPower, rank, style) {
         playerY = balancedY - ratio * areaHeight;
     }
     
-    // X座標計算（5等分均等幅）
-    // グラフ領域: 65-465 (幅400)、各ランク幅80
+    // X座標計算（6等分均等幅）
+    // グラフ領域: 65-465 (幅400)、各ランク幅 400/6
     const graphLeft = 65;
-    const rankWidth = 80;
-    
+    const rankWidth = 400 / 6;
+
     let playerX;
     if (powerInOku < 5) {
-        // C領域: 65-145
+        // C領域
         playerX = graphLeft + (powerInOku / 5) * rankWidth;
     } else if (powerInOku < 10) {
-        // B領域: 145-225
+        // B領域
         playerX = graphLeft + rankWidth + ((powerInOku - 5) / 5) * rankWidth;
     } else if (powerInOku < 30) {
-        // A領域: 225-305
+        // A領域
         playerX = graphLeft + rankWidth * 2 + ((powerInOku - 10) / 20) * rankWidth;
     } else if (powerInOku < 60) {
-        // S領域: 305-385
+        // S領域
         playerX = graphLeft + rankWidth * 3 + ((powerInOku - 30) / 30) * rankWidth;
+    } else if (powerInOku < 100) {
+        // SS領域
+        playerX = graphLeft + rankWidth * 4 + ((powerInOku - 60) / 40) * rankWidth;
     } else {
-        // SS領域: 385-465
-        playerX = graphLeft + rankWidth * 4 + Math.min((powerInOku - 60) / 40, 1) * rankWidth;
+        // SSS領域（100億〜、表示上限220億）
+        playerX = graphLeft + rankWidth * 5 + Math.min((powerInOku - 100) / 120, 1) * rankWidth;
     }
     
     // ステータスボックスの位置計算（グラフ内に収める）
@@ -135,7 +142,16 @@ function drawFgiMap(fgi, levelPower, rank, style) {
     if (boxY < graphTop + margin) {
         boxY = graphTop + margin;
     }
-    
+
+    // ランク境界線とラベル（6ランク均等幅で動的生成）
+    const rankNames = ["C", "B", "A", "S", "SS", "SSS"];
+    const rankDividers = [1, 2, 3, 4, 5]
+        .map((k) => `<line x1="${graphLeft + rankWidth * k}" y1="40" x2="${graphLeft + rankWidth * k}" y2="270" stroke="${mapColors.base}" stroke-width="1"/>`)
+        .join("\n        ");
+    const rankLabels = rankNames
+        .map((nm, i) => `<text x="${graphLeft + rankWidth * (i + 0.5)}" y="300" fill="${mapColors.textLight}" font-size="15" text-anchor="middle">${nm}</text>`)
+        .join("\n        ");
+
     // SVG生成（横幅をコンテナいっぱいに）
     const svgContent = `
     <svg xmlns="http://www.w3.org/2000/svg" width="520" height="340" viewBox="0 0 520 340">
@@ -157,10 +173,7 @@ function drawFgiMap(fgi, levelPower, rank, style) {
         </g>
         
         <!-- 縦区切り（ランク境界、均等幅） -->
-        <line x1="145" y1="40" x2="145" y2="270" stroke="${mapColors.base}" stroke-width="1"/>
-        <line x1="225" y1="40" x2="225" y2="270" stroke="${mapColors.base}" stroke-width="1"/>
-        <line x1="305" y1="40" x2="305" y2="270" stroke="${mapColors.base}" stroke-width="1"/>
-        <line x1="385" y1="40" x2="385" y2="270" stroke="${mapColors.base}" stroke-width="1"/>
+        ${rankDividers}
         
         <!-- 横区切り（FGIエリア境界、3等分） -->
         <line x1="65" y1="${topY + areaHeight}" x2="465" y2="${topY + areaHeight}" stroke="${mapColors.base}" stroke-width="1" stroke-dasharray="4,2"/>
@@ -196,12 +209,8 @@ function drawFgiMap(fgi, levelPower, rank, style) {
             <text x="${boxX + boxWidth - 12}" y="${boxY + 72}" text-anchor="end" fill="${mapColors.text}" font-size="15" font-weight="bold">${powerInOku.toFixed(1)}億</text>
         </g>
 
-        <!-- ランクラベル（均等幅の中央） -->
-        <text x="105" y="300" fill="${mapColors.textLight}" font-size="16" text-anchor="middle">C</text>
-        <text x="185" y="300" fill="${mapColors.textLight}" font-size="16" text-anchor="middle">B</text>
-        <text x="265" y="300" fill="${mapColors.textLight}" font-size="16" text-anchor="middle">A</text>
-        <text x="345" y="300" fill="${mapColors.textLight}" font-size="16" text-anchor="middle">S</text>
-        <text x="425" y="300" fill="${mapColors.textLight}" font-size="16" text-anchor="middle">SS</text>
+        <!-- ランクラベル（均等幅の中央、動的生成） -->
+        ${rankLabels}
         
         <!-- 軸ラベル -->
         <text x="265" y="328" fill="${mapColors.textLight}" font-size="13" text-anchor="middle">レベルリンク戦闘力 →</text>
@@ -313,7 +322,8 @@ function diagnose() {
 
     const fgi = battlePower / levelPower;
     let rank = "C";
-    if (levelPower >= 6000000000) rank = "SS";
+    if (levelPower >= 10000000000) rank = "SSS";
+    else if (levelPower >= 6000000000) rank = "SS";
     else if (levelPower >= 3000000000) rank = "S";
     else if (levelPower >= 1000000000) rank = "A";
     else if (levelPower >= 500000000) rank = "B";
@@ -429,6 +439,9 @@ function diagnose() {
     } else if (rank === "S") {
         nextRankName = "SS";
         nextRankThreshold = 6000000000;
+    } else if (rank === "SS") {
+        nextRankName = "SSS";
+        nextRankThreshold = 10000000000;
     }
 
     // Calculate the next rank
